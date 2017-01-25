@@ -784,6 +784,10 @@ void do_exit(long code)
 
 	cgroup_exit(tsk);
 
+	if (tsk->flags & PF_SU) {
+		su_exit();
+	}
+
 	/*
 	 * FIXME: do that only when needed, using sched_exit tracepoint
 	 */
