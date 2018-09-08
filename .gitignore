@@ -114,8 +114,5 @@ all.config
 # Kdevelop4
 *.kdev4
 
-# fetched Android config fragments
-android/configs/android-*.cfg
-
 # Huaqin, stop being retard by doing all kernel stuffs on Windows
 !.gitattributes
