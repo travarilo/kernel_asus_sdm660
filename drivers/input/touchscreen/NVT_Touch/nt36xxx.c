@@ -1052,6 +1052,7 @@ return:
 void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 {
 	uint32_t keycode = 0;
+	int is_double_tap = 0;
 
 	NVT_LOG("gesture_id = %d\n", gesture_id);
 
@@ -1076,6 +1077,7 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 		break;
 	case ID_GESTURE_DOUBLE_CLICK:
 		if (gesture_mode & MASK_GESTURE_DOUBLE_CLICK) {
+			is_double_tap = 1;
 			NVT_LOG("Gesture : Double Click.\n");
 			keycode = gesture_key_array[3];
 		}
@@ -1128,11 +1130,19 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 		break;
 	}
 
-	if (keycode > 0) {
-		input_report_key(ts->input_dev, KEY_POWER, 1);
-		input_sync(ts->input_dev);
-		input_report_key(ts->input_dev, KEY_POWER, 0);
-		input_sync(ts->input_dev);
+	if (keycode > 0 ) {
+		if (is_double_tap == 1) {
+			input_report_key(ts->input_dev, KEY_POWER, 1);
+			input_sync(ts->input_dev);
+			input_report_key(ts->input_dev, KEY_POWER, 0);
+			input_sync(ts->input_dev);
+			is_double_tap = 0;
+		} else {
+			input_report_key(ts->input_dev, keycode, 1);
+			input_sync(ts->input_dev);
+			input_report_key(ts->input_dev, keycode, 0);
+			input_sync(ts->input_dev);
+		}
 	}
 }
 #endif
