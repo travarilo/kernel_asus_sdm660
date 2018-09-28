@@ -384,23 +384,29 @@ const uint16_t touch_key_array[TOUCH_KEY_NUM] = { KEY_BACK, KEY_HOME,
 #endif
 
 #if WAKEUP_GESTURE
-#define GESTURE_EVENT_C KEY_TP_GESTURE_C
-#define GESTURE_EVENT_E KEY_TP_GESTURE_E
-#define GESTURE_EVENT_S KEY_TP_GESTURE_S
-#define GESTURE_EVENT_V KEY_TP_GESTURE_V
-#define GESTURE_EVENT_W KEY_TP_GESTURE_W
-#define GESTURE_EVENT_Z KEY_TP_GESTURE_Z
-#define GESTURE_EVENT_SWIPE_UP 0x2f6
+#define GESTURE_EVENT_C 		249
+#define GESTURE_EVENT_E 		250
+#define GESTURE_EVENT_S 		251
+#define GESTURE_EVENT_V 		252
+#define GESTURE_EVENT_W 		253
+#define GESTURE_EVENT_Z 		254
+#define GESTURE_EVENT_SWIPE_UP 248
 #define GESTURE_EVENT_DOUBLE_CLICK 0x2f7
 
 const uint16_t gesture_key_array[] = {
-	GESTURE_EVENT_C, GESTURE_EVENT_W,
-	GESTURE_EVENT_V, GESTURE_EVENT_DOUBLE_CLICK,
-	GESTURE_EVENT_Z, KEY_M,
-	KEY_O,		 GESTURE_EVENT_E,
-	GESTURE_EVENT_S, GESTURE_EVENT_SWIPE_UP,
-	KEY_POWER,       KEY_POWER,
-	KEY_POWER,
+	GESTURE_EVENT_C,
+	GESTURE_EVENT_W,
+	GESTURE_EVENT_V,
+	GESTURE_EVENT_DOUBLE_CLICK,
+	GESTURE_EVENT_Z,
+	KEY_M,
+	KEY_O,
+	GESTURE_EVENT_E,
+	GESTURE_EVENT_S,
+	GESTURE_EVENT_SWIPE_UP,
+	KEY_WAKEUP,
+	KEY_WAKEUP,
+	KEY_WAKEUP,
 };
 #endif
 
@@ -411,7 +417,7 @@ static uint8_t bTouchIsAwake;
 
 long gesture_mode = 0;
 static int allow_gesture = 0;
-static int screen_gesture = 0;
+static int screen_gesture = 1;
 static struct kobject *gesture_kobject;
 
 static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -1117,8 +1123,6 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 	uint32_t keycode = 0;
 	int is_double_tap = 0;
 
-	NVT_LOG("gesture_id = %d\n", gesture_id);
-
 	switch (gesture_id) {
 	case ID_GESTURE_WORD_C:
 		if (screen_gesture) {
@@ -1195,12 +1199,13 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 
 	if (keycode > 0 ) {
 		if (is_double_tap == 1) {
-			input_report_key(ts->input_dev, KEY_POWER, 1);
+			input_report_key(ts->input_dev, KEY_WAKEUP, 1);
 			input_sync(ts->input_dev);
-			input_report_key(ts->input_dev, KEY_POWER, 0);
+			input_report_key(ts->input_dev, KEY_WAKEUP, 0);
 			input_sync(ts->input_dev);
 			is_double_tap = 0;
 		} else {
+			NVT_LOG("[NVT-ts] : gesture key code = %d\n", keycode);
 			input_report_key(ts->input_dev, keycode, 1);
 			input_sync(ts->input_dev);
 			input_report_key(ts->input_dev, keycode, 0);
