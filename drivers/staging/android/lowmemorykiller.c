@@ -121,7 +121,7 @@ module_param_named(vmpressure_file_min, vmpressure_file_min, int,
 		   S_IRUGO | S_IWUSR);
 
 /* User knob to enable/disable oom reaping feature */
-static int oom_reaper;
+static int oom_reaper = 1;
 module_param_named(oom_reaper, oom_reaper, int, 0644);
 
 enum {
