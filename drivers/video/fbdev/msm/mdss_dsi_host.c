@@ -30,6 +30,10 @@
 #include "mdss_smmu.h"
 #include "mdss_dsi_phy.h"
 
+#ifdef CONFIG_MACH_ASUS_X00T
+#include <linux/errno.h>
+#endif
+
 #define VSYNC_PERIOD 17
 #define DMA_TX_TIMEOUT 200
 #define DMA_TPG_FIFO_LEN 64
@@ -1136,6 +1140,10 @@ static int mdss_dsi_read_status(struct mdss_dsi_ctrl_pdata *ctrl)
 	int i, rc, *lenp;
 	int start = 0;
 	struct dcs_cmd_req cmdreq;
+#ifdef CONFIG_MACH_ASUS_X00T
+	int times = 0;
+	*ctrl->status_buf.data = 0;
+#endif
 
 	rc = 1;
 	lenp = ctrl->status_valid_params ?: ctrl->status_cmds_rlen;
@@ -1146,6 +1154,9 @@ static int mdss_dsi_read_status(struct mdss_dsi_ctrl_pdata *ctrl)
 	}
 
 	for (i = 0; i < ctrl->status_cmds.cmd_cnt; ++i) {
+#ifdef CONFIG_MACH_ASUS_X00T
+		while(times < 2 && ((*ctrl->status_buf.data) != 0x0c)&& ((*ctrl->status_buf.data) != 0x9c)&& ((*ctrl->status_buf.data) != 0x98)){
+#endif
 		memset(&cmdreq, 0, sizeof(cmdreq));
 		cmdreq.cmds = ctrl->status_cmds.cmds + i;
 		cmdreq.cmds_cnt = 1;
@@ -1160,6 +1171,10 @@ static int mdss_dsi_read_status(struct mdss_dsi_ctrl_pdata *ctrl)
 			cmdreq.flags |= CMD_REQ_HS_MODE;
 
 		rc = mdss_dsi_cmdlist_put(ctrl, &cmdreq);
+#ifdef CONFIG_MACH_ASUS_X00T
+		times++;
+		}
+#endif
 		if (rc <= 0) {
 			if (!mdss_dsi_sync_wait_enable(ctrl) ||
 				mdss_dsi_sync_wait_trigger(ctrl))
@@ -1236,6 +1251,9 @@ int mdss_dsi_reg_status_check(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		else if (sctrl_pdata)
 			ret = ctrl_pdata->check_read_status(sctrl_pdata);
 	} else {
+#ifdef CONFIG_MACH_ASUS_X00T
+		ret = -ENOTSUPP;
+#endif
 		pr_err("%s: Read status register returned error\n", __func__);
 	}
 
