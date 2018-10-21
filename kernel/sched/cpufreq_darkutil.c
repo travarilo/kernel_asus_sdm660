@@ -885,7 +885,7 @@ static void dugov_policy_free(struct dugov_policy *du_policy)
 static int dugov_kthread_create(struct dugov_policy *du_policy)
 {
 	struct task_struct *thread;
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
+	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO - 1 };
 	struct cpufreq_policy *policy = du_policy->policy;
 	int ret;
 

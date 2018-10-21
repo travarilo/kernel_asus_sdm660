@@ -933,7 +933,7 @@ static void acgov_policy_free(struct acgov_policy *sg_policy)
 static int acgov_kthread_create(struct acgov_policy *sg_policy)
 {
 	struct task_struct *thread;
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
+	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO - 1 };
 	struct cpufreq_policy *policy = sg_policy->policy;
 	int ret;
 
