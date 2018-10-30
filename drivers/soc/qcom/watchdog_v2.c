@@ -716,7 +716,11 @@ static void init_watchdog_data(struct msm_watchdog_data *wdog_dd)
 	wdog_dd->user_pet_complete = true;
 	wdog_dd->user_pet_enabled = false;
 	wake_up_process(wdog_dd->watchdog_task);
+#ifdef CONFIG_MACH_ASUS_X00T
+	init_timer(&wdog_dd->pet_timer);
+#else
 	init_timer_deferrable(&wdog_dd->pet_timer);
+#endif
 	wdog_dd->pet_timer.data = (unsigned long)wdog_dd;
 	wdog_dd->pet_timer.function = pet_task_wakeup;
 	wdog_dd->pet_timer.expires = jiffies + delay_time;
