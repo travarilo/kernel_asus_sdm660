@@ -336,6 +336,15 @@
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
 
+#if defined(CONFIG_MACH_ASUS_X00T) && (defined(CONFIG_TOUCHSCREEN_NT36xxx) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27))
+#define KEY_TP_GESTURE_C 	249
+#define KEY_TP_GESTURE_E 	250
+#define KEY_TP_GESTURE_S 	251
+#define KEY_TP_GESTURE_V 	252
+#define KEY_TP_GESTURE_W 	253
+#define KEY_TP_GESTURE_Z 	254
+#endif
+
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
 #define BTN_MISC		0x100
@@ -665,20 +674,9 @@
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
-#ifdef CONFIG_MACH_ASUS_X00T
-#ifdef CONFIG_INPUT_SX9310
+#if defined(CONFIG_MACH_ASUS_X00T) && defined(CONFIG_INPUT_SX9310)
 #define KEY_SARSENSOR_NEAR		0x2ea
 #define KEY_SARSENSOR_FAR		0x2eb
-#endif
-
-#if defined(CONFIG_TOUCHSCREEN_NT36xxx) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27)
-#define KEY_TP_GESTURE_W 	0x2ec
-#define KEY_TP_GESTURE_E 	0x2ed
-#define KEY_TP_GESTURE_S 	0x2ee
-#define KEY_TP_GESTURE_Z 	0x2ef
-#define KEY_TP_GESTURE_C 	0x2f0
-#define KEY_TP_GESTURE_V 	0x2f1
-#endif
 #endif
 
 /* We avoid low common keys in module aliases so they don't get huge. */
