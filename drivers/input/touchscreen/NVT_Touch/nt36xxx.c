@@ -391,7 +391,7 @@ const uint16_t touch_key_array[TOUCH_KEY_NUM] = { KEY_BACK, KEY_HOME,
 #define GESTURE_EVENT_W 		KEY_TP_GESTURE_W
 #define GESTURE_EVENT_Z 		KEY_TP_GESTURE_Z
 #define GESTURE_EVENT_SWIPE_UP 248
-#define GESTURE_EVENT_DOUBLE_CLICK 0x2f7
+#define GESTURE_EVENT_DOUBLE_CLICK KEY_WAKEUP
 
 const uint16_t gesture_key_array[] = {
 	GESTURE_EVENT_C,
@@ -1149,9 +1149,9 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 
 	if (keycode > 0 ) {
 		if (is_double_tap == 1) {
-			input_report_key(ts->input_dev, KEY_WAKEUP, 1);
+			input_report_key(ts->input_dev, GESTURE_EVENT_DOUBLE_CLICK, 1);
 			input_sync(ts->input_dev);
-			input_report_key(ts->input_dev, KEY_WAKEUP, 0);
+			input_report_key(ts->input_dev, GESTURE_EVENT_DOUBLE_CLICK, 0);
 			input_sync(ts->input_dev);
 			is_double_tap = 0;
 		} else {
@@ -1665,7 +1665,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client,
 		input_set_capability(ts->input_dev, EV_KEY,
 				     gesture_key_array[retry]);
 	}
-        __set_bit(KEY_WAKEUP, ts->input_dev->keybit);
+        __set_bit(GESTURE_EVENT_DOUBLE_CLICK, ts->input_dev->keybit);
 	__set_bit(GESTURE_EVENT_E, ts->input_dev->keybit);
 	__set_bit(GESTURE_EVENT_W, ts->input_dev->keybit);
 	__set_bit(GESTURE_EVENT_S, ts->input_dev->keybit);
