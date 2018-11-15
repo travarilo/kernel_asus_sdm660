@@ -414,12 +414,8 @@
 &i2c_6 {
 	status = "okay";
 
-	aw87339@58 {
-		status = "disabled";
-	};
-
 	tfa98xx@34 {
 		compatible = "nxp,tfa98xx";
 		reg = <0x34>;
 	};
-};	
+};
