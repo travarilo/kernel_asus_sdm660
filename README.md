@@ -1,98 +1,41 @@
-exfat-nofuse
+exFAT-nofuse v1.2.24-dragon
 ============
 
 Linux non-fuse read/write kernel driver for the exFAT, FAT12, FAT16 and vfat (FAT32) file systems.<br />
-Originally ported from Android kernel v3.0.
-
-Kudos to ksv1986 for the mutex patch!<br />
-Thanks to JackNorris for being awesome and providing the clear_inode() patch.<br />
-<br />
-Big thanks to lqs for completing the driver!<br />
-Big thanks to benpicco for fixing 3.11.y compatibility!
 
 
-Special thanks to github user AndreiLux for spreading the word about the leak!<br />
+**Full adaptation to kernel 4.19.y**
 
-
-Installing as a stand-alone module:
-====================================
-
-    make
-    sudo make install
 
 To load the driver manually, run this as root:
+==============================================
 
-    modprobe exfat
-
-You may also specify custom toolchains by using CROSS_COMPILE flag, in my case:
->CROSS_COMPILE=../dorimanx-SG2-I9100-Kernel/android-toolchain/bin/arm-eabi-
-
-Installing as a part of the kernel:
-======================================
-
-Let's take [linux] as the path to your kernel source dir...
-
-	cd [linux]
-	cp -rvf exfat-nofuse [linux]/fs/exfat
-
-edit [linux]/fs/Kconfig
-```
- menu "DOS/FAT/NT Filesystems"
-
-  source "fs/fat/Kconfig"
- +source "fs/exfat/Kconfig"
-  source "fs/ntfs/Kconfig"
-  endmenu
-```
-  
-
-edit [linux]/fs/Makefile
-```
-  obj-$(CONFIG_FAT_FS)    += fat/
- +obj-$(CONFIG_EXFAT_FS)  += exfat/
-  obj-$(CONFIG_BFS_FS)    += bfs/
-```
-
-	cd [linux]
-	make menuconfig
-
-Go to:
-> File systems > DOS/FAT/NT
->   check exfat as MODULE (M)
->   (437) Default codepage for exFAT
->   (utf8) Default iocharset for exFAT
-
-> ESC to main menu
-> Save an Alternate Configuration File
-> ESC ESC
-
-build your kernel
-
-Have fun.
+    modprobe exfat_core
+    modprobe exfat_fs
 
 
-Installing as a DKMS module:
-=================================
+Enable exFAT module and install exfat-utils:
+============================================
 
-You can have even more fun with exfat-nofuse by installing it as a DKMS module has the main advantage of being auto-compiled (and thus, possibly surviving) between kernel upgrades.
+Add to /etc/initramfs-tools/modules:
 
-First, get dkms. On Ubuntu this should be:
+    exfat_core
+    exfat_fs
 
-	sudo apt install dkms
+For filesystem creation and manipulation beyond that of the mount command it is necessary to install the exfat-utils package:
+=============================================================================================================================
 
-Then copy the root of this repository to /usr/share:
-
-	sudo cp -R . /usr/src/exfat-1.2.8 (or whatever version number declared on dkms.conf is)
-	sudo dkms add -m exfat -v 1.2.8
-
-Build and load the module:
-
-	sudo dkms build -m exfat -v 1.2.8
-	sudo dkms install -m exfat -v 1.2.8
-
-Now you have a proper dkms module that will work for a long time... hopefully.
+    $ sudo apt install exfat-utils
+    $ sudo apt purge exfat-fuse
 
 
+To create an exFAT file system, use mkfs.exfat (or the mkexfatfs command, which is synonymous):
+===============================================================================================
 
-Free Software for the Free Minds!
-=================================
+    root #mkfs.exfat
+    mkexfatfs 1.2.8
+    Usage: mkfs.exfat [-i volume-id] [-n label] [-p partition-first-sector] [-s sectors-per-cluster] [-V] <device>
+    For instance, to create it on a removable device present at /dev/sde1 while assigning "Flash" as the file system label:
+
+    root #mkfs.exfat -n Flash /dev/sde1
+

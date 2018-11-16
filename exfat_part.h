@@ -16,25 +16,39 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifndef _EXFAT_PART_H
+#define _EXFAT_PART_H
+
 #include "exfat_config.h"
 #include "exfat_global.h"
-#include "exfat_data.h"
-#include "exfat_oal.h"
+#include "exfat_api.h"
 
-#include "exfat_blkdev.h"
-#include "exfat_cache.h"
-#include "exfat_nls.h"
-#include "exfat_super.h"
-#include "exfat.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-FS_STRUCT_T fs_struct[MAX_DRIVE];
+#define MBR_SIGNATURE           0xAA55
+	typedef struct {
+		u8       boot_code[446];
+		u8       partition[64];
+		u8       signature[2];
+	} MBR_SECTOR_T;
 
-DECLARE_MUTEX(f_sem);
-BUF_CACHE_T FAT_cache_array[FAT_CACHE_SIZE];
-BUF_CACHE_T FAT_cache_lru_list;
-BUF_CACHE_T FAT_cache_hash_list[FAT_CACHE_HASH_SIZE];
+	typedef struct {
+		u8       def_boot;
+		u8       bgn_chs[3];
+		u8       sys_type;
+		u8       end_chs[3];
+		u8       start_sector[4];
+		u8       num_sectors[4];
+	} PART_ENTRY_T;
 
-DECLARE_MUTEX(b_sem);
-BUF_CACHE_T buf_cache_array[BUF_CACHE_SIZE];
-BUF_CACHE_T buf_cache_lru_list;
-BUF_CACHE_T buf_cache_hash_list[BUF_CACHE_HASH_SIZE];
+	s32 ffsSetPartition(s32 dev, s32 num_vol, PART_INFO_T *vol_spec);
+	s32 ffsGetPartition(s32 dev, s32 *num_vol, PART_INFO_T *vol_spec);
+	s32 ffsGetDevInfo(s32 dev, DEV_INFO_T *info);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -29,14 +29,16 @@
 #include <linux/swap.h>
 
 #include "exfat_config.h"
+#include "exfat_global.h"
 #include "exfat_data.h"
 #include "exfat_oal.h"
 
 #include "exfat_blkdev.h"
 #include "exfat_cache.h"
+#include "exfat_part.h"
 #include "exfat_nls.h"
 #include "exfat_api.h"
-#include "exfat_core.h"
+#include "exfat.h"
 
 #define EXFAT_ERRORS_CONT  1    /* ignore error and continue */
 #define EXFAT_ERRORS_PANIC 2    /* panic on error */
@@ -46,12 +48,12 @@
 #define EXFAT_IOCTL_GET_VOLUME_ID _IOR('r', 0x12, __u32)
 
 struct exfat_mount_options {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,5,0)
-	kuid_t fs_uid;
-	kgid_t fs_gid;
-#else
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
 	uid_t fs_uid;
 	gid_t fs_gid;
+#else
+	kuid_t fs_uid;
+	kgid_t fs_gid;
 #endif
 	unsigned short fs_fmask;
 	unsigned short fs_dmask;
@@ -59,7 +61,8 @@ struct exfat_mount_options {
 	unsigned short codepage;    /* codepage for shortname conversions */
 	char *iocharset;            /* charset for filename input/display */
 	unsigned char casesensitive;
-	unsigned char errors;       /* on error: continue, panic, remount-ro */
+	unsigned char tz_utc;
+	unsigned char errors;
 #ifdef CONFIG_EXFAT_DISCARD
 	unsigned char discard;      /* flag on if -o dicard specified and device support discard() */
 #endif /* CONFIG_EXFAT_DISCARD */
@@ -76,6 +79,7 @@ struct exfat_sb_info {
 	BD_INFO_T bd_info;
 
 	struct exfat_mount_options options;
+	int use_vmalloc;
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,00)
 	int s_dirt;
@@ -107,7 +111,6 @@ struct exfat_inode_info {
 	struct rw_semaphore truncate_lock;
 #endif
 	struct inode vfs_inode;
-	struct rw_semaphore i_alloc_sem; /* protect bmap against truncate */
 };
 
 #define EXFAT_SB(sb)		((struct exfat_sb_info *)((sb)->s_fs_info))
@@ -155,9 +158,9 @@ static inline mode_t exfat_make_mode(struct exfat_sb_info *sbi,
 static inline u32 exfat_make_attr(struct inode *inode)
 {
 	if (exfat_mode_can_hold_ro(inode) && !(inode->i_mode & S_IWUGO))
-		return (EXFAT_I(inode)->fid.attr) | ATTR_READONLY;
+		return ((EXFAT_I(inode)->fid.attr) | ATTR_READONLY);
 	else
-		return EXFAT_I(inode)->fid.attr;
+		return (EXFAT_I(inode)->fid.attr);
 }
 
 static inline void exfat_save_attr(struct inode *inode, u32 attr)
@@ -168,4 +171,15 @@ static inline void exfat_save_attr(struct inode *inode, u32 attr)
 		EXFAT_I(inode)->fid.attr = attr & (ATTR_RWMASK | ATTR_READONLY);
 }
 
-#endif /* _EXFAT_LINUX_H */
+/* exfat_xattr.c */
+#ifdef CONFIG_EXFAT_VIRTUAL_XATTR
+void setup_exfat_xattr_handler(struct super_block *sb);
+extern int exfat_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags);
+extern ssize_t exfat_getxattr(struct dentry *dentry, const char *name, void *value, size_t size);
+extern ssize_t exfat_listxattr(struct dentry *dentry, char *list, size_t size);
+extern int exfat_removexattr(struct dentry *dentry, const char *name);
+#else
+static inline void setup_exfat_xattr_handler(struct super_block *sb) {};
+#endif
+
+#endif
