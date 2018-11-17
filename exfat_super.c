@@ -3093,15 +3093,12 @@ static int __init init_exfat_fs(void)
 
 	err = exfat_init_inodecache();
 	if (err) return err;
-
 #ifdef CONFIG_EXFAT_USE_FOR_VFAT
-	err = register_filesystem(&vfat_fs_type);
-	if (err) {
-		pr_err("[EXFAT] failed to register for vfat filesystem\n");
-		goto error;
-	}
-#endif /* CONFIG_EXFAT_USE_FOR_VFAT */
+	printk(KERN_INFO "exFAT: Register for vfat filesystem %s\n", EXFAT_VERSION);
 
+	err = register_filesystem(&vfat_fs_type);
+	if (err) return err;
+#endif /* CONFIG_EXFAT_USE_FOR_VFAT */
 	return register_filesystem(&exfat_fs_type);
 }
 
@@ -3113,6 +3110,7 @@ static void __exit exit_exfat_fs(void)
 	unregister_filesystem(&vfat_fs_type);
 #endif /* CONFIG_EXFAT_USE_FOR_VFAT */
 }
+
 
 module_init(init_exfat_fs);
 module_exit(exit_exfat_fs);
