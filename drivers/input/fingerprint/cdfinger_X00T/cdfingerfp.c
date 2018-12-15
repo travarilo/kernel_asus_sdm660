@@ -561,7 +561,6 @@ static long cdfinger_ioctl(struct file* filp, unsigned int cmd, unsigned long ar
 			break;
 		case CDFINGER_INIT_IRQ:
 			err = cdfinger_eint_gpio_init(cdfinger);
-			cdfinger_debug = 0x00;
 			break;
 		case CDFINGER_WAKE_LOCK:
 			cdfinger_wake_lock(cdfinger,arg);
