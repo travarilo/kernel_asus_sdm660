@@ -788,7 +788,7 @@ static ssize_t tfa98xx_dbgfs_rpc_send(struct file *file,
 
 	err = send_tfa_cal_apr(buffer, count, false);
 	if (err)
-		pr_err("[0x%x] dsp_msg error: %d\n", i2c->addr, err);
+		pr_err("[0x%x] send_tfa_cal_apr error: %d\n", i2c->addr, err);
 
 	mdelay(2);
 #else
