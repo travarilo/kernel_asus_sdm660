@@ -32,6 +32,10 @@
 		qcom,fast-avg-setup = <0>;
 	};
 
+	chan@4f {
+		qcom,hw-settle-time = <0xf>;
+	};
+
 	chan@13 {
 		label = "gpio3_adc";
 		reg = <0x13>;
