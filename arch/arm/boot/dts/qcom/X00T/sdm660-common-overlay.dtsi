@@ -7,6 +7,8 @@
 };
 
 &usb3 {
+	/delete-property/ qcom,usb-dbm;
+
 	extcon = <&pm660_charger>;
 	vbus_dwc3-supply = <&smb2_vbus>;
 
@@ -45,4 +47,8 @@
 				0x14 0x9C
 				0x9F 0x1C
 				0x00 0x18>;
+};
+
+&dbm_1p5 {
+	status = "disabled";
 };
