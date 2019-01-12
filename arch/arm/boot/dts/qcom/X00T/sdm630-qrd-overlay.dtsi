@@ -34,3 +34,7 @@
 				0x9f 0x1c
 				0x00 0x18>;
 };
+
+&smb138x {
+	status = "disabled";
+};
