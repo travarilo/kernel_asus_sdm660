@@ -21,7 +21,6 @@
 		fstab {
 			vendor {
 				fsmgr_flags = "wait";
-				status = "ok";
 			};
 
 			system {
