@@ -156,7 +156,10 @@
 #define GESTURE_EVENT_V 		KEY_TP_GESTURE_V
 #define GESTURE_EVENT_W 		KEY_TP_GESTURE_W
 #define GESTURE_EVENT_Z 		KEY_TP_GESTURE_Z
-#define GESTURE_EVENT_SWIPE_UP 		258
+#define GESTURE_EVENT_SWIPE_UP 		255
+#define GESTURE_EVENT_SWIPE_DOWN 		256
+#define GESTURE_EVENT_SWIPE_LEFT 		257
+#define GESTURE_EVENT_SWIPE_RIGHT 		258
 #define GESTURE_EVENT_DOUBLE_CLICK 	KEY_WAKEUP
 
 #define SYNA_GESTURE_MODE 		"tpd_gesture"
@@ -3776,6 +3779,12 @@ static void synaptics_rmi4_set_params(struct synaptics_rmi4_data *rmi4_data)
 		input_set_capability(rmi4_data->input_dev, EV_KEY, GESTURE_EVENT_V);
 		set_bit(KEY_UP, rmi4_data->input_dev->keybit);
 		input_set_capability(rmi4_data->input_dev, EV_KEY, GESTURE_EVENT_SWIPE_UP);
+		set_bit(KEY_DOWN, rmi4_data->input_dev->keybit);
+		input_set_capability(rmi4_data->input_dev, EV_KEY, GESTURE_EVENT_SWIPE_DOWN);
+		set_bit(KEY_LEFT, rmi4_data->input_dev->keybit);
+		input_set_capability(rmi4_data->input_dev, EV_KEY, GESTURE_EVENT_SWIPE_LEFT);
+		set_bit(KEY_RIGHT, rmi4_data->input_dev->keybit);
+		input_set_capability(rmi4_data->input_dev, EV_KEY, GESTURE_EVENT_SWIPE_RIGHT);
 	}
 
 	return;
