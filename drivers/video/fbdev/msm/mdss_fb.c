@@ -48,6 +48,9 @@
 #include <linux/dma-buf.h>
 #include <sync.h>
 #include <sw_sync.h>
+#ifdef CONFIG_MACH_ASUS_X00T
+#include <linux/wakelock.h>
+#endif
 
 #include "mdss_fb.h"
 #include "mdss_mdp_splash_logo.h"
@@ -55,6 +58,11 @@
 #include "mdss_debug.h"
 #include "mdss_smmu.h"
 #include "mdss_mdp.h"
+
+#ifdef CONFIG_MACH_ASUS_X00T
+static struct wake_lock early_unblank_wakelock;
+extern bool lcd_suspend_flag;
+#endif
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MDSS_FB_NUM 3
@@ -1664,8 +1672,10 @@ static void asus_lcd_early_unblank_func(struct work_struct *work)
 	if (!fbi)
 		return;
 
+	wake_lock_timeout(&early_unblank_wakelock,msecs_to_jiffies(300));
 	fb_blank(fbi, FB_BLANK_UNBLANK);
 
+	lcd_suspend_flag = false;
 	mfd->early_unblank_work_queued = false;
 }
 #endif
@@ -1686,7 +1696,12 @@ static int mdss_fb_pm_suspend(struct device *dev)
 	if (!fbi)
 		return -ENODEV;
 
-	fb_blank(fbi, FB_BLANK_POWERDOWN);
+	if (mfd->index == 0) {
+		if (lcd_suspend_flag == false) {
+			fb_blank(fbi, FB_BLANK_POWERDOWN);
+			lcd_suspend_flag = true;
+		}
+	}
 #endif
 
 	dev_dbg(dev, "display pm suspend\n");
@@ -5314,6 +5329,8 @@ int __init mdss_fb_init(void)
 #ifdef CONFIG_MACH_ASUS_X00T
 	asus_lcd_early_unblank_wq =
 			create_singlethread_workqueue("display_early_wq");
+	wake_lock_init(&early_unblank_wakelock, WAKE_LOCK_SUSPEND,
+			"early_unblank-update");
 #endif
 
 	return 0;
