@@ -16,6 +16,7 @@
  *
  */
 
+#if 0
 #include <linux/init.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
@@ -26,7 +27,7 @@
 #include <linux/slab.h>
 #include <linux/miscdevice.h>
 #include <linux/list.h>
-#include <linux/device.h>
+#endif
 #include <linux/kernel.h>
 #include <linux/kobject.h>
 #include <linux/module.h>
@@ -979,6 +980,7 @@ static int32_t nvt_flash_proc_init(void)
 }
 #endif
 
+#if 0
 /**********add ito test mode function  *******************/
 int nvt_TestResultLen;
 static struct platform_device hwinfo_device = {
@@ -1034,6 +1036,7 @@ int nvt_test_node_init(struct platform_device *tpinfo_device)
 	return err;
 }
 /*************************************************/
+#endif
 
 #if WAKEUP_GESTURE
 #define ID_GESTURE_WORD_C 12
@@ -1723,9 +1726,11 @@ static int32_t nvt_ts_probe(struct i2c_client *client,
 			   msecs_to_jiffies(14000));
 #endif
 
+#if 0
 	//--------add ito node
 	platform_device_register(&hwinfo_device);
 	nvt_test_node_init(&hwinfo_device);
+#endif
 
 /********************add protect , 20170908***********************/
 #if NVT_TOUCH_ESD_PROTECT

@@ -18,17 +18,19 @@
 #ifndef _LINUX_NVT_TOUCH_H
 #define _LINUX_NVT_TOUCH_H
 
+#if 0
 #include <linux/platform_device.h>
 #include <linux/device.h>
+#endif
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/regulator/consumer.h>
-#include <linux/debugfs.h>
+//#include <linux/debugfs.h>
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
 
-#define NVT_DEBUG 1
+#define NVT_DEBUG 0
 
 //---GPIO number---
 #define NVTTOUCH_INT_PIN 943
@@ -63,9 +65,11 @@
 //---Input device info.---
 #define NVT_TS_NAME "NVTCapacitiveTouchScreen"
 
+#if 0
 #define HWINFO_NAME "tp_wake_switch"
 //-------------add ito test
 extern int32_t ito_selftest_open(void);
+#endif
 
 //---Touch info.---
 #define TOUCH_MAX_FINGER_NUM 10
@@ -78,7 +82,7 @@ extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
 //---Customerized func.---
 #define NVT_TOUCH_PROC 1
 #define NVT_TOUCH_EXT_PROC 1
-#define NVT_TOUCH_MP 1
+#define NVT_TOUCH_MP 0
 #define MT_PROTOCOL_B 1
 #define WAKEUP_GESTURE 1
 #if WAKEUP_GESTURE
@@ -90,7 +94,7 @@ extern const uint16_t gesture_key_array[];
 #define TXD_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_txd.bin"
 
 //---ESD Protect.---
-#define NVT_TOUCH_ESD_PROTECT 1
+#define NVT_TOUCH_ESD_PROTECT 0
 #define NVT_TOUCH_ESD_CHECK_PERIOD 1500 /* ms */
 
 struct nvt_ts_mem_map {
@@ -180,7 +184,9 @@ typedef enum {
 
 //---extern structures---
 extern struct nvt_ts_data *ts;
+#if 0
 extern int nvt_TestResultLen;
+#endif
 
 //---extern functions---
 extern int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address,
