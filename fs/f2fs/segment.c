@@ -338,8 +338,8 @@ void f2fs_drop_inmem_pages(struct inode *inode)
 			if (!list_empty(&fi->inmem_ilist))
 				list_del_init(&fi->inmem_ilist);
 			spin_unlock(&sbi->inode_lock[ATOMIC_FILE]);
-			mutex_unlock(&fi->inmem_lock);
 		}
+		mutex_unlock(&fi->inmem_lock);
 	}
 
 	clear_inode_flag(inode, FI_ATOMIC_FILE);
@@ -561,8 +561,12 @@ void f2fs_balance_fs_bg(struct f2fs_sb_info *sbi)
 static int __submit_flush_wait(struct f2fs_sb_info *sbi,
 				struct block_device *bdev)
 {
-	struct bio *bio = f2fs_bio_alloc(sbi, 0, true);
+	struct bio *bio;
 	int ret;
+
+	bio = f2fs_bio_alloc(sbi, 0, false);
+	if (!bio)
+		return -ENOMEM;
 
 	bio->bi_rw = REQ_OP_WRITE;
 	bio->bi_bdev = bdev;
@@ -3274,10 +3278,10 @@ int f2fs_inplace_write_data(struct f2fs_io_info *fio)
 	stat_inc_inplace_blocks(fio->sbi);
 
 	err = f2fs_submit_page_bio(fio);
-	if (!err)
+	if (!err) {
 		update_device_state(fio);
-
-	f2fs_update_iostat(fio->sbi, fio->io_type, F2FS_BLKSIZE);
+		f2fs_update_iostat(fio->sbi, fio->io_type, F2FS_BLKSIZE);
+	}
 
 	return err;
 }

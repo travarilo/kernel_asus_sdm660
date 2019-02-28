@@ -306,9 +306,10 @@ static inline void __submit_bio(struct f2fs_sb_info *sbi,
 		for (; start < F2FS_IO_SIZE(sbi); start++) {
 			struct page *page =
 				mempool_alloc(sbi->write_io_dummy,
-					GFP_NOIO | __GFP_ZERO | __GFP_NOFAIL);
+					      GFP_NOIO | __GFP_NOFAIL);
 			f2fs_bug_on(sbi, !page);
 
+			zero_user_segment(page, 0, PAGE_SIZE);
 			SetPagePrivate(page);
 			set_page_private(page, (unsigned long)DUMMY_WRITTEN_PAGE);
 			lock_page(page);
@@ -1892,8 +1893,13 @@ got_it:
 		if (fio->need_lock == LOCK_REQ)
 			f2fs_unlock_op(fio->sbi);
 		err = f2fs_inplace_write_data(fio);
-		if (err && PageWriteback(page))
-			end_page_writeback(page);
+		if (err) {
+			if (f2fs_encrypted_file(inode))
+				fscrypt_pullback_bio_page(&fio->encrypted_page,
+									true);
+			if (PageWriteback(page))
+				end_page_writeback(page);
+		}
 		trace_f2fs_do_write_data_page(fio->page, IPU);
 		set_inode_flag(inode, FI_UPDATE_WRITE);
 		return err;
