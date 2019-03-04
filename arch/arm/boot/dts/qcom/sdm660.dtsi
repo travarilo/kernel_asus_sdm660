@@ -35,7 +35,7 @@
 	chosen {
 		stdout-path = "serial0";
 		/* Huaqin modify for ZQL1650-358 by liunianliang at 2018/02/08 start */
-		bootargs = "rcupdate.rcu_expedited=1 noirqdebug";
+		bootargs = "quiet rcupdate.rcu_expedited=1 noirqdebug";
 		/* Huaqin modify for ZQL1650-358 by liunianliang at 2018/02/08 end */
 	};
 
