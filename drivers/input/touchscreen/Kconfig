@@ -1224,5 +1224,8 @@ config TOUCHSCREEN_ST
 	  If unsure, say N.
 
 source "drivers/input/touchscreen/st/Kconfig"
+source "drivers/input/touchscreen/NVT_Touch/Kconfig"
+source "drivers/input/touchscreen/synaptics_dsx_v1/Kconfig"
+source "drivers/input/touchscreen/focaltech_touch/Kconfig"
 
 endif
