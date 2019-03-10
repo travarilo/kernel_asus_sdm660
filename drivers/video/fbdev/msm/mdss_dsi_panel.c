@@ -380,7 +380,7 @@ free:
 ret:
 	return rc;
 }
-#if defined(CONFIG_MACH_ASUS_X00T) && (defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX))
+#if defined(CONFIG_MACH_ASUS_X00T) && defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27)
 extern long syna_gesture_mode;
 #endif
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
@@ -507,7 +507,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
-#if defined(CONFIG_MACH_ASUS_X00T) && (defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX))
+#if defined(CONFIG_MACH_ASUS_X00T) && defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_v27)
 		printk("qimk panel name:%s\n",mdss_mdp_panel);
 		if(strstr(mdss_mdp_panel,"qcom,mdss_dsi_td4310_1080p_video_txd"))
 		{
