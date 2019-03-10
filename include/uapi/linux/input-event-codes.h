@@ -665,13 +665,12 @@
 #define KEY_SARSENSOR_NEAR		0x2ea
 #define KEY_SARSENSOR_FAR		0x2eb
 
-/* Touch gesture */
-#define KEY_TP_GESTURE_W		0x2ec
-#define KEY_TP_GESTURE_E		0x2ed
-#define KEY_TP_GESTURE_S		0x2ee
-#define KEY_TP_GESTURE_Z		0x2ef
-#define KEY_TP_GESTURE_C		0x2f0
-#define KEY_TP_GESTURE_V		0x2f1
+#define KEY_TP_GESTURE_W 	253
+#define KEY_TP_GESTURE_E 	250
+#define KEY_TP_GESTURE_S 	251
+#define KEY_TP_GESTURE_Z 	254
+#define KEY_TP_GESTURE_C 	249
+#define KEY_TP_GESTURE_V 	252
 
 /* We avoid low common keys in module aliases so they don't get huge. */
 #define KEY_MIN_INTERESTING	KEY_MUTE
