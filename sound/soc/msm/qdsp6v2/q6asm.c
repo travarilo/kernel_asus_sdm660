@@ -2020,9 +2020,11 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 		case ASM_DATA_CMD_REMOVE_TRAILING_SILENCE:
 		case ASM_SESSION_CMD_REGISTER_FOR_RX_UNDERFLOW_EVENTS:
 		case ASM_STREAM_CMD_OPEN_WRITE_COMPRESSED:
-			if (data->payload_size >=
-				2 * sizeof(uint32_t) &&
-				payload[1] != 0) {
+			if (data->payload_size <
+				2 * sizeof(uint32_t)) {
+				pr_err("%s:%d: payload size of %x is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
+			} else if (payload[1] != 0) {
 				pr_debug("%s: session %d opcode 0x%x token 0x%x Payload = [0x%x] stat 0x%x src %d dest %d\n",
 					__func__, ac->session,
 					data->opcode, data->token,
@@ -2051,9 +2053,6 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					&(session[session_id].session_lock),
 					flags);
 				return 0;
-			} else {
-				pr_err("%s:%d: payload size of %x is less than expected.\n",
-					__func__, __LINE__, data->payload_size);
 			}
 			if ((is_adsp_reg_event(payload[0]) >= 0) ||
 			    (payload[0] == ASM_STREAM_CMD_SET_PP_PARAMS_V2) ||
