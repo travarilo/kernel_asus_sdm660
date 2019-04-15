@@ -149,6 +149,8 @@ struct nvt_ts_data {
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
 	struct early_suspend early_suspend;
 #endif
+	struct work_struct resume_work;
+	struct work_struct suspend_work;
 	uint8_t fw_ver;
 	uint8_t x_num;
 	uint8_t y_num;

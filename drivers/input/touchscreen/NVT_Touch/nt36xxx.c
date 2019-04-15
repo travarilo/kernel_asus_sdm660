@@ -215,6 +215,9 @@ static struct workqueue_struct *nvt_fwu_wq;
 extern void Boot_Update_Firmware(struct work_struct *work);
 #endif
 
+static void nvt_resume_worker(struct work_struct *work);
+static void nvt_suspend_worker(struct work_struct *work);
+
 #if defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data);
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
@@ -1771,8 +1774,8 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 #if WAKEUP_GESTURE
 	er = create_gesture_node();
 #endif
-
-
+	INIT_WORK(&ts->resume_work, nvt_resume_worker);
+	INIT_WORK(&ts->suspend_work, nvt_suspend_worker);
 #if defined(CONFIG_FB)
 	ts->fb_notif.notifier_call = fb_notifier_callback;
 	ret = fb_register_client(&ts->fb_notif);
@@ -2023,6 +2026,22 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 	return 0;
 }
+
+static void nvt_resume_worker(struct work_struct *work)
+{
+	struct nvt_ts_data *ts = container_of(work, typeof(*ts),
+					      resume_work);
+
+	nvt_ts_resume(&ts->client->dev);
+}
+
+static void nvt_suspend_worker(struct work_struct *work)
+{
+	struct nvt_ts_data *ts = container_of(work, typeof(*ts),
+					      suspend_work);
+
+	nvt_ts_suspend(&ts->client->dev);
+}
 #if defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
 {
@@ -2033,11 +2052,12 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
 
 	if (evdata && evdata->data) {
 		blank = evdata->data;
-		if (event == FB_EARLY_EVENT_BLANK && *blank == FB_BLANK_POWERDOWN)
-			nvt_ts_suspend(&ts->client->dev);
-		}
-		else if (event == FB_EVENT_BLANK && *blank == FB_BLANK_UNBLANK)
-			nvt_ts_resume(&ts->client->dev);
+		if (event == FB_EARLY_EVENT_BLANK && *blank == FB_BLANK_POWERDOWN) {
+			flush_work(&ts->resume_work);
+			schedule_work(&ts->suspend_work);
+		} else if (event == FB_EVENT_BLANK && *blank == FB_BLANK_UNBLANK) {
+			flush_work(&ts->suspend_work);
+			schedule_work(&ts->resume_work);
 		}
 	}
 
