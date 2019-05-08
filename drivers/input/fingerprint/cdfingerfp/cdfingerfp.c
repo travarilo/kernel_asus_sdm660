@@ -131,7 +131,7 @@ static struct cdfinger_key_map maps[] = {
 	{ EV_KEY, CF_NAV_INPUT_LONG_PRESS },
 };
 
-static void do_fp_boost_rem(struct work_struct *work)
+static inline void do_fp_boost_rem(struct work_struct *work)
 {
 	unsigned int ret;
 
@@ -144,7 +144,7 @@ static void do_fp_boost_rem(struct work_struct *work)
 	}
 }
 
-static void do_fp_boost(struct work_struct *work)
+static inline void do_fp_boost(struct work_struct *work)
 {
 	unsigned int ret;
 
@@ -160,7 +160,7 @@ static void do_fp_boost(struct work_struct *work)
 			   msecs_to_jiffies(FP_BOOST_MS));
 }
 
-static void fp_cpuboost(void)
+static inline void fp_cpuboost(void)
 {
 	u64 now;
 	static u64 last_time = 0;
@@ -236,7 +236,7 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 	return err;
 }
 
-static int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
+static inline int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
 {
 	int err = 0;
 	CDFINGER_DBG("%s(..) enter.\n", __FUNCTION__);
@@ -312,7 +312,7 @@ static int cdfinger_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static void cdfinger_wake_lock(struct cdfingerfp_data *pdata, int arg)
+static inline void cdfinger_wake_lock(struct cdfingerfp_data *pdata, int arg)
 {
 	if (arg) {
 		if (wake_flag == 0) {
@@ -385,7 +385,7 @@ static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 	return error;
 }
 
-static void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
+static inline void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
 {
 	if (pdata->irq_enable_status == 0) {
 		enable_irq(gpio_to_irq(pdata->irq_num));
@@ -394,7 +394,7 @@ static void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
 	}
 }
 
-static void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
+static inline void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
 {
 	if (pdata->irq_enable_status == 1) {
 		disable_irq(gpio_to_irq(pdata->irq_num));
@@ -537,7 +537,7 @@ static struct miscdevice st_cdfinger_dev = {
 	.fops = &cdfinger_fops,
 };
 
-static int cdfinger_fb_notifier_callback(struct notifier_block *self,
+static inline int cdfinger_fb_notifier_callback(struct notifier_block *self,
 					 unsigned long event, void *data)
 {
 	struct fb_event *evdata = data;
@@ -576,7 +576,7 @@ static int cdfinger_fb_notifier_callback(struct notifier_block *self,
 	return retval;
 }
 
-static int cdfinger_probe(struct platform_device *pdev)
+static inline int cdfinger_probe(struct platform_device *pdev)
 {
 	struct cdfingerfp_data *cdfingerdev = NULL;
 	int status = -ENODEV;
