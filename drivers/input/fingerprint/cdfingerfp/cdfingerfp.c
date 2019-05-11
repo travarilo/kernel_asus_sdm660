@@ -4,6 +4,8 @@
  * Copyright (C) 2019 Dede Dindin Qudsy <xtrymind@gmail.com>.
 */
 
+#define pr_fmt(fmt) "cdfinger: " fmt
+
 #include <asm/uaccess.h>
 #include <linux/delay.h>
 #include <linux/errno.h>
@@ -84,8 +86,6 @@ static int isInKeyMode = 0; // key mode
 static int irq_flag = 0;
 static int screen_status = 1; // screen on
 static char wake_flag = 0;
-
-#define pr_fmt(fmt) "cdfinger: " fmt
 
 #define FP_BOOST_MS 500
 #define FP_BOOST_INTERVAL (500 * USEC_PER_MSEC)
