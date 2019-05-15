@@ -6,25 +6,51 @@
 
 #define pr_fmt(fmt) "cdfinger: " fmt
 
-#include <asm/uaccess.h>
-#include <linux/delay.h>
-#include <linux/errno.h>
-#include <linux/fb.h>
-#include <linux/fs.h>
-#include <linux/gpio.h>
+#include <linux/atomic.h>
 #include <linux/init.h>
-#include <linux/input.h>
+#include <linux/module.h>
+#include <linux/device.h>
+#include <linux/ioport.h>
+#include <linux/errno.h>
+#include <linux/spi/spi.h>
+#include <linux/workqueue.h>
+#include <linux/dma-mapping.h>
+#include <linux/platform_device.h>
 #include <linux/interrupt.h>
 #include <linux/irqreturn.h>
-#include <linux/miscdevice.h>
-#include <linux/module.h>
-#include <linux/mutex.h>
-#include <linux/notifier.h>
-#include <linux/of_gpio.h>
-#include <linux/platform_device.h>
-#include <linux/slab.h>
+#include <linux/types.h>
+#include <linux/delay.h>
+#include <linux/clk.h>
+#include <linux/err.h>
+#include <linux/io.h>
+#include <linux/ioctl.h>
+#include <linux/spinlock.h>
 #include <linux/sched.h>
-#include <linux/workqueue.h>
+#include <linux/wakelock.h>
+#include <linux/kthread.h>
+#include <linux/cdev.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+#include <linux/spi/spidev.h>
+#include <linux/semaphore.h>
+#include <linux/poll.h>
+#include <linux/fcntl.h>
+#include <linux/list.h>
+#include <linux/mutex.h>
+#include <linux/slab.h>
+#include <linux/wait.h>
+#include <linux/input.h>
+#include <linux/signal.h>
+#include <linux/gpio.h>
+#include <linux/mm.h>
+#include <linux/of_gpio.h>
+#include <linux/fs.h>
+#include <linux/miscdevice.h>
+#include <linux/of_irq.h>
+#include <linux/regulator/consumer.h>
+#include <linux/fb.h>
+#include <linux/notifier.h>
+#include <linux/sched.h>
 
 typedef struct key_report {
 	int key;
@@ -36,7 +62,6 @@ struct cdfinger_key_map {
 	unsigned int code;
 };
 
-/* Huaqin modify for TT1240582 by puqirui at 2018/09/21 satrt */
 #define CDFINGER_IOCTL_MAGIC_NO 0xFB
 #define CDFINGER_INIT _IOW(CDFINGER_IOCTL_MAGIC_NO, 0, uint8_t)
 #define CDFINGER_GETIMAGE _IOW(CDFINGER_IOCTL_MAGIC_NO, 1, uint8_t)
@@ -65,27 +90,25 @@ struct cdfinger_key_map {
 #define CDFINGER_WAKE_LOCK _IOW(CDFINGER_IOCTL_MAGIC_NO, 26, uint8_t)
 #define CDFINGER_ENABLE_IRQ _IOW(CDFINGER_IOCTL_MAGIC_NO, 27, uint8_t)
 
-/*if want change key value for event , do it*/
-/* Huaqin add define for fingerprint nav-keycode by leiyu at 2018/04/12 start */
-#define CF_NAV_INPUT_UP FP_KEY_UP
-#define CF_NAV_INPUT_DOWN FP_KEY_DOWN
-#define CF_NAV_INPUT_LEFT FP_KEY_LEFT
-#define CF_NAV_INPUT_RIGHT FP_KEY_RIGHT
-#define CF_NAV_INPUT_CLICK FP_KEY_CLICK
-#define CF_NAV_INPUT_DOUBLE_CLICK FP_KEY_DOUBLE_CLICK
-#define CF_NAV_INPUT_LONG_PRESS FP_KEY_LONG_PRESS
-/* Huaqin add define for fingerprint nav-keycode by leiyu at 2018/04/12 start */
+#define CF_NAV_INPUT_UP 600
+#define CF_NAV_INPUT_DOWN 601
+#define CF_NAV_INPUT_LEFT 602
+#define CF_NAV_INPUT_RIGHT 603
+#define CF_NAV_INPUT_CLICK 604
+#define CF_NAV_INPUT_DOUBLE_CLICK KEY_VOLUMEUP
+#define CF_NAV_INPUT_LONG_PRESS 605
+
 #define CF_KEY_INPUT_HOME KEY_HOME
 #define CF_KEY_INPUT_MENU KEY_MENU
 #define CF_KEY_INPUT_BACK KEY_BACK
 #define CF_KEY_INPUT_POWER KEY_POWER
 #define CF_KEY_INPUT_CAMERA KEY_CAMERA
+
 #define DEVICE_NAME "fpsdev0"
 #define INPUT_DEVICE_NAME "cdfinger_input"
 static int isInKeyMode = 0; // key mode
-static int irq_flag = 0;
+static int isInit = 0;
 static int screen_status = 1; // screen on
-static char wake_flag = 0;
 
 #define FP_BOOST_MS 500
 #define FP_BOOST_INTERVAL (500 * USEC_PER_MSEC)
@@ -106,7 +129,7 @@ struct cdfingerfp_data {
 	struct input_dev *cdfinger_input;
 	struct notifier_block notifier;
 	struct mutex buf_lock;
-	int irq_enable_status;
+	atomic_t irq_enable_status;
 } * g_cdfingerfp_data;
 
 static struct cdfinger_key_map maps[] = {
@@ -173,6 +196,7 @@ static inline void fp_cpuboost(void)
 static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 {
 	int err = 0;
+
 	if (gpio_is_valid(cdfinger->pwr_num)) {
 		err = gpio_request(cdfinger->pwr_num, "cdfinger-pwr");
 		if (err) {
@@ -232,9 +256,6 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 
 static inline int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
 {
-	int err = 0;
-	pr_debug("%s(..) enter.\n", __FUNCTION__);
-
 	if (gpio_is_valid(cdfinger->irq_num)) {
 		gpio_free(cdfinger->irq_num);
 		free_irq(gpio_to_irq(cdfinger->irq_num), (void *)cdfinger);
@@ -247,17 +268,14 @@ static inline int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
 	if (gpio_is_valid(cdfinger->pwr_num)) {
 		gpio_free(cdfinger->pwr_num);
 	}
-	irq_flag = 0;
 
 	pr_debug("%s(..) ok! exit.\n", __FUNCTION__);
-	return err;
+	return 0;
 }
 
 static int cdfinger_parse_dts(struct device *dev,
 			      struct cdfingerfp_data *cdfinger)
 {
-	int err = 0;
-
 	cdfinger->pwr_num =
 		of_get_named_gpio(dev->of_node, "cdfinger,gpio_vdd", 0);
 	cdfinger->reset_num =
@@ -267,20 +285,24 @@ static int cdfinger_parse_dts(struct device *dev,
 
 	pr_debug("cdfinger of node reset[%d] irq[%d]\n",
 		     cdfinger->reset_num, cdfinger->irq_num);
-	return err;
+	return 0;
 }
 
 static int cdfinger_power_on(struct cdfingerfp_data *pdata)
 {
-	int ret = 0;
 	gpio_direction_output(pdata->pwr_num, 1);
+	mdelay(1);
+	gpio_set_value(pdata->reset_num, 1);
 	msleep(10);
-	return ret;
+
+	return 0;
 }
 
 static int cdfinger_power_off(struct cdfingerfp_data *pdata)
 {
 	gpio_direction_output(pdata->pwr_num, 0);
+	mdelay(1);
+
 	return 0;
 }
 
@@ -309,25 +331,19 @@ static int cdfinger_release(struct inode *inode, struct file *file)
 static inline void cdfinger_wake_lock(struct cdfingerfp_data *pdata, int arg)
 {
 	if (arg) {
-		if (wake_flag == 0) {
-			__pm_stay_awake(&pdata->cdfinger_lock);
-			wake_flag = 1;
-		}
+		__pm_stay_awake(&pdata->cdfinger_lock);
 	} else {
-		if (wake_flag == 1) {
-			__pm_relax(&pdata->cdfinger_lock);
-			wake_flag = 0;
-		}
+		__pm_relax(&pdata->cdfinger_lock);
 	}
 }
 
-static void cdfinger_async_report(void)
+static inline void cdfinger_async_report(void)
 {
 	struct cdfingerfp_data *cdfingerfp = g_cdfingerfp_data;
 	kill_fasync(&cdfingerfp->async_queue, SIGIO, POLL_IN);
 }
 
-static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
+static irqreturn_t cdfinger_eint_handler(int irq, void *handle)
 {
 #if 0
 /* Huaqin modify for cpu_boost by leiyu at 2018/04/25 start */
@@ -336,32 +352,31 @@ static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
 	}
 /* Huaqin modify for cpu_boost by leiyu at 2018/04/25 end */
 #endif
-	struct cdfingerfp_data *pdata = g_cdfingerfp_data;
-	if (pdata->irq_enable_status == 1) {
+	struct cdfingerfp_data *pdata = handle;
+	if (atomic_read(&pdata->irq_enable_status)) {
 		fp_cpuboost();
 		cdfinger_wake_lock(pdata, 1);
 		cdfinger_async_report();
 	}
+
 	return IRQ_HANDLED;
 }
 
-static int cdfinger_reset_gpio_init(struct cdfingerfp_data *pdata, int ms)
+static inline void cdfinger_reset(struct cdfingerfp_data *pdata, int ms)
 {
-	gpio_direction_output(pdata->reset_num, 1);
+	gpio_set_value(pdata->reset_num, 1);
 	mdelay(ms);
 	gpio_set_value(pdata->reset_num, 0);
 	mdelay(ms);
 	gpio_set_value(pdata->reset_num, 1);
 	mdelay(ms);
-
-	return 0;
 }
 
-static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
+static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 {
 	int error = 0;
 
-	if (irq_flag == 1)
+	if (isInit)
 		return 0;
 
 	error = request_threaded_irq(gpio_to_irq(pdata->irq_num),
@@ -372,44 +387,45 @@ static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 		pr_err("cdfinger irq init err\n");
 		return error;
 	}
-	enable_irq_wake(gpio_to_irq(pdata->irq_num));
 
-	irq_flag = 1;
-	pdata->irq_enable_status = 1;
+	enable_irq_wake(gpio_to_irq(pdata->irq_num));
+	atomic_set(&pdata->irq_enable_status, 1);
+	isInit = 1;
+
 	return error;
 }
 
 static inline void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
 {
-	if (pdata->irq_enable_status == 0) {
+	if (!atomic_read(&pdata->irq_enable_status)) {
 		enable_irq(gpio_to_irq(pdata->irq_num));
 		enable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 1;
+		atomic_set(&pdata->irq_enable_status, 1);
 	}
 }
 
 static inline void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
 {
-	if (pdata->irq_enable_status == 1) {
+	if (atomic_read(&pdata->irq_enable_status)) {
 		disable_irq(gpio_to_irq(pdata->irq_num));
 		disable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 0;
+		atomic_set(&pdata->irq_enable_status, 0);
 	}
 }
 
-static int cdfinger_irq_controller(struct cdfingerfp_data *pdata, int Onoff)
+static inline int cdfinger_irq_controller(struct cdfingerfp_data *pdata, int Onoff)
 {
-	if (irq_flag == 0) {
+	if (!isInit) {
 		pr_err("cdfinger irq  not request!!!\n");
 		return -1;
 	}
 
-	if (Onoff == 1) {
+	if (Onoff) {
 		cdfinger_enable_irq(pdata);
 		return 0;
 	}
 
-	if (Onoff == 0) {
+	if (!Onoff) {
 		cdfinger_disable_irq(pdata);
 		return 0;
 	}
@@ -469,13 +485,13 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = cdfinger_init_gpio(cdfinger);
 		break;
 	case CDFINGER_INIT_IRQ:
-		err = cdfinger_eint_gpio_init(cdfinger);
+		err = cdfinger_init_irq(cdfinger);
 		break;
 	case CDFINGER_WAKE_LOCK:
 		cdfinger_wake_lock(cdfinger, arg);
 		break;
 	case CDFINGER_RELEASE_DEVICE:
-		irq_flag = 0;
+		isInit = 0;
 		cdfinger_free_gpio(cdfinger);
 		misc_deregister(cdfinger->miscdev);
 		break;
@@ -486,20 +502,21 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = cdfinger_power_off(cdfinger);
 		break;
 	case CDFINGER_RESET:
-		cdfinger_reset_gpio_init(cdfinger, 1);
+		cdfinger_reset(cdfinger, 1);
 		break;
 	case CDFINGER_REPORT_KEY:
 		err = cdfinger_report_key(cdfinger, arg);
 		break;
 	case CDFINGER_NEW_KEYMODE:
 		isInKeyMode = 0;
+		cdfinger_reset(cdfinger,1);
 		break;
 	case CDFINGER_INITERRUPT_MODE:
 		isInKeyMode = 1; // not key mode
-		cdfinger_reset_gpio_init(cdfinger, 1);
+		cdfinger_reset(cdfinger, 1);
 		break;
 	case CDFINGER_HW_RESET:
-		cdfinger_reset_gpio_init(cdfinger, arg);
+		cdfinger_reset(cdfinger, arg);
 		break;
 	case CDFINGER_GET_STATUS:
 		err = screen_status;
@@ -508,11 +525,20 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = cdfinger_irq_controller(cdfinger, arg);
 		break;
 	default:
+		pr_warn("Unsupport cmd:0x%x\n", cmd);
 		break;
 	}
 	mutex_unlock(&cdfinger->buf_lock);
 	return err;
 }
+
+#ifdef CONFIG_COMPAT
+static long cdfinger_compat_ioctl(struct file *filp, unsigned int cmd,
+			   unsigned long arg)
+{
+	return cdfinger_ioctl(filp, cmd, (unsigned long)compat_ptr(arg));
+}
+#endif /*CONFIG_COMPAT*/
 
 static const struct file_operations cdfinger_fops = {
 	.owner = THIS_MODULE,
@@ -521,7 +547,7 @@ static const struct file_operations cdfinger_fops = {
 	.release = cdfinger_release,
 	.fasync = cdfinger_async_fasync,
 #ifdef CONFIG_COMPAT
-	.compat_ioctl = cdfinger_ioctl,
+	.compat_ioctl = cdfinger_compat_ioctl,
 #endif
 };
 
@@ -633,6 +659,18 @@ unregister_dev:
 	return status;
 }
 
+static int cdfinger_remove(struct platform_device *pdev)
+{
+	struct cdfingerfp_data *cdfingerdev = platform_get_drvdata(pdev);
+
+	mutex_destroy(&cdfingerdev->buf_lock);
+	wakeup_source_trash(&cdfingerdev->cdfinger_lock);
+
+	pr_info("%s\n", __func__);
+
+	return 0;
+}
+
 static const struct of_device_id cdfinger_of_match[] = {
 	{
 		.compatible = "cdfinger,fingerprint",
@@ -650,22 +688,28 @@ static struct platform_driver cdfinger_driver = {
 	},
 	.id_table = cdfinger_id,
 	.probe = cdfinger_probe,
+	.remove	= cdfinger_remove,
 };
 
 static int __init cdfinger_fp_init(void)
 {
-	pr_debug("cdfinger fp init \n");
-	return platform_driver_register(&cdfinger_driver);
+	int rc = platform_driver_register(&cdfinger_driver);
+
+	if (!rc)
+		pr_info("%s OK\n", __func__);
+	else
+		pr_err("%s %d\n", __func__, rc);
+
+	return rc;
 }
 
 static void __exit cdfinger_fp_exit(void)
 {
-	pr_debug("cdfinger fp exit \n");
+	pr_info("%s\n", __func__);
 	platform_driver_unregister(&cdfinger_driver);
 }
 
 module_init(cdfinger_fp_init);
-
 module_exit(cdfinger_fp_exit);
 
 MODULE_DESCRIPTION("cdfinger spi Driver");
