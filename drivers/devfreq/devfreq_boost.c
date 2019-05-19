@@ -13,7 +13,8 @@
 enum {
 	SCREEN_OFF,
 	INPUT_BOOST,
-	MAX_BOOST
+	MAX_BOOST,
+	WAKE_BOOST
 };
 
 struct boost_dev {
@@ -75,7 +76,7 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
 	unsigned long curr_expires, new_expires;
 
-	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
+	if (!READ_ONCE(b->df))
 		return;
 
 	do {
@@ -97,8 +98,29 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 void devfreq_boost_kick_max(enum df_device device, unsigned int duration_ms)
 {
 	struct df_boost_drv *d = &df_boost_drv_g;
+	struct boost_dev *b = d->devices + device;
 
-	__devfreq_boost_kick_max(d->devices + device, duration_ms);
+	if (test_bit(SCREEN_OFF, &b->state))
+		return;
+
+	__devfreq_boost_kick_max(b, duration_ms);
+}
+
+static void __devfreq_boost_kick_wake(struct boost_dev *b)
+{
+	if (!test_bit(SCREEN_OFF, &b->state))
+		return;
+
+	set_bit(WAKE_BOOST, &b->state);
+	__devfreq_boost_kick_max(b,
+				 CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
+}
+
+void devfreq_boost_kick_wake(enum df_device device)
+{
+	struct df_boost_drv *d = &df_boost_drv_g;
+
+	__devfreq_boost_kick_wake(d->devices + device);
 }
 
 void devfreq_register_boost_device(enum df_device device, struct devfreq *df)
@@ -126,6 +148,7 @@ static void devfreq_max_unboost(struct work_struct *work)
 					   typeof(*b), max_unboost);
 
 	clear_bit(MAX_BOOST, &b->state);
+	clear_bit(WAKE_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
 }
 
@@ -176,7 +199,7 @@ static int devfreq_boost_thread(void *data)
 }
 
 static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
-			  void *data)
+			       void *data)
 {
 	struct df_boost_drv *d = container_of(nb, typeof(*d), fb_notif);
 	int i, *blank = ((struct fb_event *)data)->data;
@@ -191,8 +214,7 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 		if (*blank == FB_BLANK_UNBLANK) {
 			clear_bit(SCREEN_OFF, &b->state);
-			__devfreq_boost_kick_max(b,
-				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
+			__devfreq_boost_kick_wake(b);
 		} else {
 			set_bit(SCREEN_OFF, &b->state);
 			wake_up(&b->boost_waitq);
