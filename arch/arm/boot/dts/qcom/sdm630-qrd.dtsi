@@ -151,14 +151,13 @@
 / {
 	qrd_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
-
-		#include "fg-gen3-batterydata-qrd-skuk-4v4-3000mah.dtsi"
+		#include "fg-gen3-batterydata-3292665_Huaqin_QL1650cos_5000mAh.dtsi"
 	};
 };
 
 &pm660_fg {
 	qcom,battery-data = <&qrd_batterydata>;
-	qcom,fg-jeita-thresholds = <0 5 55 55>;
+	//qcom,fg-jeita-thresholds = <0 10 50 60>;
 	qcom,battery-thermal-coefficients = [9d 50 ff];
 };
 
@@ -194,6 +193,7 @@
 	vdd-supply = <&pm660l_l4>;
 	qcom,vdd-voltage-level = <2950000 2950000>;
 	qcom,vdd-current-level = <200 570000>;
+	qcom,vdd-always-on;
 
 	/* device communication power supply */
 	vdd-io-supply = <&pm660_l8>;
@@ -353,7 +353,7 @@
 		compatible = "qcom,msm-ssc-sensors";
 	};
 
-	gpio_keys {
+	/*gpio_keys {
 		compatible = "gpio-keys";
 		input-name = "gpio-keys";
 		status = "ok";
@@ -366,7 +366,17 @@
 			gpio-key,wakeup;
 			debounce-interval = <15>;
 		};
-	};
+
+		home {
+			label = "home";
+			gpios = <&pm660_gpios 11 0x1>;
+			linux,input-type = <1>;
+			linux,code = <102>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
+	};*/
 
 	hbtp {
 		compatible = "qcom,hbtp-input";
@@ -390,8 +400,8 @@
 &qusb_phy0 {
 	qcom,qusb-phy-init-seq = <0xf8 0x80
 				0x83 0x84
-				0x83 0x88
-				0xc3 0x8c
+				0x81 0x88
+				0xc7 0x8c
 				0x30 0x08
 				0x79 0x0c
 				0x21 0x10

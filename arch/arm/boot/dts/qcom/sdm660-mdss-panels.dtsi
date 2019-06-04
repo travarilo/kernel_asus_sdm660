@@ -27,6 +27,9 @@
 #include "dsi-panel-rm67195-amoled-fhd-cmd.dtsi"
 #include "dsi-panel-lgd-incell-sw49106-fhd-video.dtsi"
 #include "dsi-panel-hx8399c-fhd-plus-video.dtsi"
+#include "dsi-panel-nt36672-1080p-video-txd.dtsi"
+#include "dsi-panel-nt36672-1080p-video.dtsi"
+#include "dsi-panel-td4310-1080p-video-txd.dtsi"
 
 &soc {
 	dsi_panel_pwr_supply: dsi_panel_pwr_supply {

@@ -79,5 +79,9 @@
 };
 
 &msm_sdw_codec {
-	status = "okay";
+	status = "disabled";
+};
+
+&cdc_sdw_gpios {
+	status = "disabled";
 };

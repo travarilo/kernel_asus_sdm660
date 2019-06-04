@@ -15,6 +15,10 @@
 
 #include "sdm636.dtsi"
 #include "sdm636-qrd.dtsi"
+#include "sdm660-internal-codec.dtsi"
+#include "dsi-panel-nt36672-1080p-video-txd.dtsi"
+#include "dsi-panel-nt36672-1080p-video.dtsi"
+#include "dsi-panel-td4310-1080p-video-txd.dtsi"
 
 / {
 	model = "Qualcomm Technologies, Inc. SDM 636 PM660 + PM660L QRD";
@@ -30,15 +34,22 @@
 };
 
 &mdss_fb0 {
-	qcom,mdss-mixer-swap;
 };
 
 &mdss_dsi {
-	hw-config = "split_dsi";
+	hw-config = "single_dsi";
+	qcom,mdss-fb-map-prim = <&mdss_fb0>;
+	qcom,mdss-fb-map-sec = <&mdss_fb2>;
+};
+
+&dsi_panel_pwr_supply {
+	qcom,panel-supply-entry@0 {
+		qcom,supply-pre-off-sleep = <2>;
+	};
 };
 
 &mdss_dsi0 {
-	qcom,dsi-pref-prim-pan = <&dsi_dual_nt36850_truly_cmd>;
+	qcom,dsi-pref-prim-pan = <&dsi_nt36672_1080p_video_txd>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
@@ -47,7 +58,8 @@
 };
 
 &mdss_dsi1 {
-	qcom,dsi-pref-prim-pan = <&dsi_dual_nt36850_truly_cmd>;
+	status = "disabled";
+	qcom,dsi-pref-prim-pan = <&dsi_nt36672_1080p_video_txd>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
@@ -64,6 +76,18 @@
 
 &pm660l_wled {
 	qcom,led-strings-list = [00 01];
+};
+
+&dsi_nt36672_1080p_video_txd {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_nt36672_1080p_video {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_td4310_1080p_video_txd {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
 };
 
 &soc {
@@ -85,4 +109,79 @@
 		qcom,afe-power-on-delay-us = <1000>;
 		qcom,afe-power-off-delay-us = <6>;
 	};
+
+	common_fp {
+		compatible = "common,fingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <72 0x0>;
+
+		common,gpio_reset   = <&tlmm 20 0>;
+		common,gpio_irq		= <&tlmm 72 0>;
+		common,gpio_vdd		= <&pm660l_gpios 5 0>;
+		pinctrl-names		= "commonfp_reset_reset",
+					  "commonfp_reset_active",
+					  "commonfp_irq_active";
+		pinctrl-0 = <&commonfp_reset_reset>;
+		pinctrl-1 = <&commonfp_reset_active>;
+		pinctrl-2 = <&commonfp_irq_active>;
+	};
+
+	cdfinger_fingerprint {
+		compatible = "cdfinger,fingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <72 0x0>;
+		cdfinger,reset_gpio = <&tlmm 20 0>;
+		cdfinger,gpio_vdd  = <&pm660l_gpios 5 0>;
+		cdfinger,irq_gpio = <&tlmm 72 0>;
+	};
+
+	goodix_fingerprint {
+		compatible = "goodix,fingerprint";
+	};
+};
+
+/*add for SAR SENSOR*/
+&i2c_2 {/* BLSP2 */
+	status = "okay";
+	semtech@28{
+		compatible = "Semtech,sx9310";
+		reg = <0x28>;
+		vdd-supply  =<&pm660l_l3>;
+		vdd1-supply =<&pm660_l13>;  // for svdd
+		interrupt-parent = <&tlmm>;
+		Semtech,gpio-irq= <&tlmm 77 0x2008>; // gpio 77
+		interrupts = <77 0x2>;
+		pinctrl-names = "sarsensor_active", "sarsensor_suspend";
+		pinctrl-0 = <&sarsensor_int_active>;
+		pinctrl-1 = <&sarsensor_int_suspend>;
+	};
+};
+
+&i2c_7 {
+	status = "okay";
+	stk@48 {
+		compatible = "stk,stk3x1x";
+		reg = <0x48>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <45 0x2>;
+		vdd-supply = <&pm660l_l3>;
+		vio-supply = <&pm660_l14>;
+		stk,irq-gpio = <&tlmm 45 0x02>;
+		pinctrl-names = "psensor_active", "psensor_suspend";
+		pinctrl-0 = <&psensor_int_active>;
+		pinctrl-1 = <&psensor_int_suspend>;
+		stk,state-reg = <0x0>;
+		stk,psctrl-reg = <0x31>;
+		stk,alsctrl-reg = <0x39>;
+		stk,ledctrl-reg = <0xFF>;
+		stk,wait-reg = <0x0A>;
+		stk,ps-thdh = <120>;
+		stk,ps-thdl = <90>;
+		stk,transmittance = <1100>;
+	};
+};
+
+&pm660_charger {
+	ADC_SW_EN-gpios59 = <&tlmm 71 0x0>;
+	ADCPWREN_PMI_GP1-gpios34 = <&tlmm 3 0x0>;
 };

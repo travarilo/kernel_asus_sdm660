@@ -307,7 +307,16 @@
 					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1,discard";
-					fsmgr_flags = "wait,slotselect,verify";
+					fsmgr_flags = "wait";
+					status = "ok";
+				};
+
+				system {
+					compatible = "android,system";
+					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/system";
+					type = "ext4";
+					mnt_flags = "ro,barrier=1,discard";
+					fsmgr_flags = "wait";
 					status = "ok";
 				};
 			};
@@ -406,6 +415,14 @@
 		cont_splash_mem: splash_region@9d400000 {
 			reg = <0x0 0x9d400000 0x0 0x23ff000>;
 			label = "cont_splash_mem";
+		};
+
+		pstore_reserve_mem: pstore_reserve_mem_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			reg = <0x0 0x9ff00000 0x0 0x00100000>;
+			label = "pstore_reserve_mem";
 		};
 
 		dfps_data_mem: dfps_data_mem@0x9f7ff000 {
@@ -614,7 +631,7 @@
 		reg = <0x17817000 0x1000>;
 		reg-names = "wdt-base";
 		interrupts = <0 3 0>, <0 4 0>;
-		qcom,bark-time = <11000>;
+		qcom,bark-time = <20000>;
 		qcom,pet-time = <10000>;
 		qcom,ipi-ping;
 		qcom,wakeup-enable;
@@ -2655,6 +2672,7 @@
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
 
+/*
 		camera_focus {
 			label = "camera_focus";
 			gpios = <&tlmm 64 0x1>;
@@ -2670,12 +2688,22 @@
 			linux,code = <0x2fe>;
 			debounce-interval = <15>;
 		};
+*/
 
 		vol_up {
 			label = "volume_up";
-			gpios = <&pm660l_gpios 7 0x1>;
+			gpios = <&tlmm 44 0x1>;
 			linux,input-type = <1>;
 			linux,code = <115>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
+		vol_down {
+			label = "volume_down";
+			gpios = <&tlmm 43 0x1>;
+			linux,input-type = <1>;
+			linux,code = <114>;
 			gpio-key,wakeup;
 			debounce-interval = <15>;
 		};

@@ -137,8 +137,8 @@
 		dai_mi2s2: qcom,msm-dai-q6-mi2s-tert {
 			compatible = "qcom,msm-dai-q6-mi2s";
 			qcom,msm-dai-q6-mi2s-dev-id = <2>;
-			qcom,msm-mi2s-rx-lines = <0>;
-			qcom,msm-mi2s-tx-lines = <3>;
+			qcom,msm-mi2s-rx-lines = <1>;
+			qcom,msm-mi2s-tx-lines = <2>;
 		};
 
 		dai_mi2s5: qcom,msm-dai-q6-mi2s-quin {
@@ -823,12 +823,16 @@
 		qcom,msm-mclk-freq = <9600000>;
 		qcom,msm-mbhc-hphl-swh = <1>;
 		qcom,msm-mbhc-gnd-swh = <1>;
-		qcom,msm-micbias2-ext-cap;
-		qcom,msm-hs-micbias-type = "external";
+		qcom,msm-micbias1-ext-cap;
+		qcom,msm-hs-micbias-type = "internal";
+		qcom,wsa-disable;
+		qcom,msm-spk-ext-pa = <&tlmm 24 0>;
+		qcom,msm-hph-ext-sw = <&tlmm 66 0>, <&tlmm 94 0>;
 		qcom,us-euro-gpios = <&us_euro_gpio>;
 		qcom,cdc-pdm-gpios = <&cdc_pdm_gpios>;
 		qcom,cdc-comp-gpios = <&cdc_comp_gpios>;
 		qcom,cdc-dmic-gpios = <&cdc_dmic_gpios>;
+		qcom,tert-mi2s-gpios = <&tert_mi2s_gpios>;
 		qcom,audio-routing =
 			"RX_BIAS", "INT_MCLK0",
 			"SPK_RX_BIAS", "INT_MCLK0",
@@ -836,10 +840,10 @@
 			"RX_I2S_CLK", "INT_MCLK0",
 			"TX_I2S_CLK", "INT_MCLK0",
 			"MIC BIAS External", "Handset Mic",
-			"MIC BIAS External2", "Headset Mic",
+			"MIC BIAS Internal2", "Headset Mic",
 			"MIC BIAS External", "Secondary Mic",
 			"AMIC1", "MIC BIAS External",
-			"AMIC2", "MIC BIAS External2",
+			"AMIC2", "MIC BIAS Internal2",
 			"AMIC3", "MIC BIAS External",
 			"DMIC1", "MIC BIAS External",
 			"MIC BIAS External", "Digital Mic1",

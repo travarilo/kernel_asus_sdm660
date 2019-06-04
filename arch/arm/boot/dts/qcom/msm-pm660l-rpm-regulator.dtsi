@@ -112,6 +112,8 @@
 			compatible = "qcom,rpm-smd-regulator";
 			regulator-name = "pm660l_l3";
 			qcom,set = <3>;
+			qcom,init-ldo-mode = <1>;
+			regulator-always-on;
 			status = "disabled";
 		};
 	};
