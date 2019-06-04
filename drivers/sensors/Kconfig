@@ -4,3 +4,18 @@ config SENSORS_SSC
 	  Add support for sensors SSC driver.
 	  This driver is used for exercising sensors use case,
 	  time syncing with ADSP clock.
+
+config SENSORS_CLASS
+	bool "Sensors Class Support"
+	help
+	  This option enables the sensor sysfs class in /sys/class/sensors.
+	  You'll need this to do anything useful with sensors.
+
+	  If unsure, say N.
+
+config INPUT_STK3321
+	tristate "STK STK3321 alsps sensor"
+	depends on I2C
+	select SENSORS_CLASS
+	help
+	  Say Y here to enable the STK3321 ALSPS Sensor.
