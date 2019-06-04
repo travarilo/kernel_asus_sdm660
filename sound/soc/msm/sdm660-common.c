@@ -2518,6 +2518,10 @@ int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 			}
 		}
 		if (index == TERT_MI2S) {
+#ifdef CONFIG_INPUT_SX9310
+			pr_debug("%s before open PA, close SAR!\n", __func__);
+			sar_switch(0);
+#endif
 			msm_cdc_pinctrl_select_active_state
 				(pdata->tert_mi2s_gpio_p);
 			pr_debug("daixianze %s tert_mi2s_gpio_p\n", __func__);
@@ -2564,6 +2568,10 @@ void msm_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 			msm_cdc_pinctrl_select_sleep_state
 				(pdata->tert_mi2s_gpio_p);
 			pr_debug("daixianze %s tert_mi2s_gpio_p\n", __func__);
+#ifdef CONFIG_INPUT_SX9310
+			pr_debug("%s after close PA, open SAR!\n", __func__);
+			sar_switch(1);
+#endif
 		}
 
 		ret = msm_mi2s_set_sclk(substream, false);
