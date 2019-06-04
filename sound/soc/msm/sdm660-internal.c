@@ -14,6 +14,7 @@
 #include <linux/platform_device.h>
 #include <linux/module.h>
 #include <linux/mfd/msm-cdc-pinctrl.h>
+#include <linux/delay.h>
 #include <sound/pcm_params.h>
 #include "qdsp6v2/msm-pcm-routing-v2.h"
 #include "sdm660-common.h"
@@ -155,6 +156,10 @@ static const char *const loopback_mclk_text[] = {"DISABLE", "ENABLE"};
 static char const *bt_sample_rate_text[] = {"KHZ_8", "KHZ_16", "KHZ_48"};
 static char const *bt_sample_rate_rx_text[] = {"KHZ_8", "KHZ_16", "KHZ_48"};
 static char const *bt_sample_rate_tx_text[] = {"KHZ_8", "KHZ_16", "KHZ_48"};
+
+extern int aw87339_chipid_spk;
+extern unsigned char aw87339_audio_kspk_spk(void);
+extern unsigned char aw87339_audio_off_spk(void);
 
 static SOC_ENUM_SINGLE_EXT_DECL(int0_mi2s_rx_sample_rate, int_mi2s_rate_text);
 static SOC_ENUM_SINGLE_EXT_DECL(int0_mi2s_rx_chs, int_mi2s_ch_text);
@@ -482,9 +487,24 @@ done:
 	return ret;
 }
 
+extern int hph_ext_en_gpio;
+extern int hph_ext_sw_gpio;
+
+static int is_ext_hph_gpio_support(struct platform_device *pdev,
+				   struct msm_asoc_mach_data *pdata)
+{
+	return 0;
+}
+
+static int enable_hph_ext_sw(struct snd_soc_codec *codec, int enable)
+{
+	return 0;
+}
+
 static int is_ext_spk_gpio_support(struct platform_device *pdev,
 				   struct msm_asoc_mach_data *pdata)
 {
+#if 0
 	const char *spk_ext_pa = "qcom,msm-spk-ext-pa";
 
 	pr_debug("%s:Enter\n", __func__);
@@ -502,11 +522,14 @@ static int is_ext_spk_gpio_support(struct platform_device *pdev,
 			return -EINVAL;
 		}
 	}
+#endif
+
 	return 0;
 }
 
 static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 {
+#if 0
 	struct snd_soc_card *card = codec->component.card;
 	struct msm_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int ret;
@@ -517,28 +540,38 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 		return false;
 	}
 
-	pr_debug("%s: %s external speaker PA\n", __func__,
+	pr_err("%s: %s external speaker PA\n", __func__,
 		enable ? "Enable" : "Disable");
 
 	if (enable) {
-		ret = msm_cdc_pinctrl_select_active_state(
-						pdata->ext_spk_gpio_p);
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
+		if (aw87339_chipid_spk == -1) {
+			ret = msm_cdc_pinctrl_select_active_state(
+							pdata->ext_spk_gpio_p);
+			if (ret) {
+				pr_err("%s: gpio set cannot be de-activated %s\n",
+						__func__, "ext_spk_gpio");
+				return ret;
+			}
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+		} else {
+			aw87339_audio_kspk_spk();
 		}
-		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
 	} else {
-		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
-		ret = msm_cdc_pinctrl_select_sleep_state(
-						pdata->ext_spk_gpio_p);
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
+		if (aw87339_chipid_spk == -1) {
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+			ret = msm_cdc_pinctrl_select_sleep_state(
+							pdata->ext_spk_gpio_p);
+			if (ret) {
+				pr_err("%s: gpio set cannot be de-activated %s\n",
+						__func__, "ext_spk_gpio");
+				return ret;
+			}
+		} else {
+			aw87339_audio_off_spk();
 		}
 	}
+#endif
+
 	return 0;
 }
 
@@ -1307,7 +1340,7 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 		return NULL;
 
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm_int_wcd_cal)->X) = (Y))
-	S(v_hs_max, 1500);
+	S(v_hs_max, 1700);
 #undef S
 #define S(X, Y) ((WCD_MBHC_CAL_BTN_DET_PTR(msm_int_wcd_cal)->X) = (Y))
 	S(num_btn, WCD_MBHC_DEF_BUTTONS);
@@ -1332,10 +1365,10 @@ static void *def_msm_int_wcd_mbhc_cal(void)
 	 */
 	btn_low[0] = 75;
 	btn_high[0] = 75;
-	btn_low[1] = 150;
-	btn_high[1] = 150;
-	btn_low[2] = 225;
-	btn_high[2] = 225;
+	btn_low[1] = 225;
+	btn_high[1] = 225;
+	btn_low[2] = 450;
+	btn_high[2] = 450;
 	btn_low[3] = 450;
 	btn_high[3] = 450;
 	btn_low[4] = 500;
@@ -1399,6 +1432,7 @@ static int msm_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	snd_soc_dapm_sync(dapm);
 
 	msm_anlg_cdc_spk_ext_pa_cb(enable_spk_ext_pa, ana_cdc);
+	msm_anlg_cdc_hph_ext_sw_cb(enable_hph_ext_sw, ana_cdc);
 	msm_dig_cdc_hph_comp_cb(msm_config_hph_compander_gpio, dig_cdc);
 
 	card = rtd->card->snd_card;
@@ -2404,6 +2438,23 @@ static struct snd_soc_dai_link msm_int_dai[] = {
 		.ignore_pmdown_time = 1,
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA6,
 	},
+	{/* hw:x,40 */
+		.name = "Tertiary MI2S_TX Hostless",
+		.stream_name = "Tertiary MI2S_TX Hostless",
+		.cpu_dai_name = "TERT_MI2S_TX_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dailink has playback support */
+		.ignore_pmdown_time = 1,
+		/* This dainlink has MI2S support */
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
 };
 
 
@@ -2423,6 +2474,15 @@ static struct snd_soc_dai_link msm_int_wsa_dai[] = {
 		.dpcm_capture = 1,
 		.ignore_pmdown_time = 1,
 	},
+};
+
+static struct snd_soc_dai_link_component tfa98xx_codecs[] = {
+	{
+		.name     = "tfa98xx.6-0034",
+		.of_node  = NULL,
+		.dai_name = "tfa98xx-aif-6-34",
+	},
+
 };
 
 static struct snd_soc_dai_link msm_int_be_dai[] = {
@@ -2760,6 +2820,7 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.ops = &msm_mi2s_be_ops,
 		.ignore_suspend = 1,
 	},
+#if 0
 	{
 		.name = LPASS_BE_TERT_MI2S_RX,
 		.stream_name = "Tertiary MI2S Playback",
@@ -2789,6 +2850,37 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.ops = &msm_mi2s_be_ops,
 		.ignore_suspend = 1,
 	},
+#else
+	{
+		.name = LPASS_BE_TERT_MI2S_RX,
+		.stream_name = "Tertiary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.2",
+		.platform_name = "msm-pcm-routing",
+		.codecs = tfa98xx_codecs,
+		.num_codecs = 1,
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_TERTIARY_MI2S_RX,
+		.be_hw_params_fixup = msm_common_be_hw_params_fixup,
+		.ops = &msm_mi2s_be_ops,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+	},
+	{
+		.name = LPASS_BE_TERT_MI2S_TX,
+		.stream_name = "Tertiary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.2",
+		.platform_name = "msm-pcm-routing",
+		.codecs = tfa98xx_codecs,
+		.num_codecs = 1,
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_TERTIARY_MI2S_TX,
+		.be_hw_params_fixup = msm_common_be_hw_params_fixup,
+		.ops = &msm_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+#endif
 	{
 		.name = LPASS_BE_QUAT_MI2S_RX,
 		.stream_name = "Quaternary MI2S Playback",
@@ -3173,6 +3265,12 @@ static int msm_internal_init(struct platform_device *pdev,
 	if (ret < 0)
 		dev_dbg(&pdev->dev,
 			"%s: doesn't support external speaker pa\n",
+			__func__);
+
+	ret = is_ext_hph_gpio_support(pdev, pdata);
+	if (ret < 0)
+		dev_dbg(&pdev->dev,
+			"%s: doesn't support external headphone switch\n",
 			__func__);
 
 	ret = of_property_read_string(pdev->dev.of_node,
