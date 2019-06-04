@@ -50,6 +50,7 @@ struct kmsg_dumper {
 	u32 next_idx;
 	u64 cur_seq;
 	u64 next_seq;
+	char *name;
 };
 
 #ifdef CONFIG_PRINTK
