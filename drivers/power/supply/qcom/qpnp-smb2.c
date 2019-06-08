@@ -189,7 +189,6 @@ struct smb2 {
 struct smb_charger *smbchg_dev;
 struct timespec last_jeita_time;
 struct wake_lock asus_chg_lock;
-bool demo_app_property_flag;
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
 extern void asus_smblib_stay_awake(struct smb_charger *chg);
@@ -2506,42 +2505,6 @@ static void remove_proc_charger_limit(void)
 	pr_info("%s: remove_proc %s\n", __func__, CHARGER_LIMIT_EN_PROC_FILE);
 }
 
-static ssize_t demo_app_property_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t len)
-{
-	int tmp = 0;
-
-	tmp = buf[0] - 48;
-	pr_info("%s: tmp = %d\n", __func__, tmp);
-	if (tmp == 0) {
-		demo_app_property_flag = false;
-		pr_info("%s: demo_app_property_flag = 0\n", __func__);
-	} else if (tmp == 1) {
-		demo_app_property_flag = true;
-		pr_info("%s: demo_app_property_flag = 1\n", __func__);
-	}
-	return len;
-}
-
-static ssize_t demo_app_property_show(struct device *dev,
-				      struct device_attribute *attr,
-				      char *buf)
-{
-	return sprintf(buf, "%d\n", demo_app_property_flag);
-}
-
-static DEVICE_ATTR(demo_app_property, 0664, demo_app_property_show,
-		   demo_app_property_store);
-
-static struct attribute *asus_smblib_attrs[] = {
-	&dev_attr_demo_app_property.attr,
-	NULL
-};
-
-static const struct attribute_group asus_smblib_attr_group = {
-	.attrs = asus_smblib_attrs,
-};
-
 int32_t get_ID_vadc_voltage(void)
 {
 	struct qpnp_vadc_chip *vadc_dev;
@@ -2735,13 +2698,6 @@ static int smb2_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 
-	rc = sysfs_create_group(&chg->dev->kobj, &asus_smblib_attr_group);
-	if (rc < 0) {
-		pr_err("%s: create node demo_app_property failed! rc=%d\n",
-		       __func__, rc);
-		goto cleanup;
-	}
-
 	init_proc_charger_limit();
 
 	smb2_create_debugfs(chip);
@@ -2827,7 +2783,6 @@ cleanup:
 	smblib_deinit(chg);
 
 	platform_set_drvdata(pdev, NULL);
-	sysfs_remove_group(&chg->dev->kobj, &asus_smblib_attr_group);
 	remove_proc_charger_limit();
 
 	return rc;
