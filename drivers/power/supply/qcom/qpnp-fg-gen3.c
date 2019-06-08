@@ -20,6 +20,7 @@
 #include <linux/platform_device.h>
 #include <linux/iio/consumer.h>
 #include <linux/qpnp/qpnp-revid.h>
+#include <linux/switch.h>
 #include "fg-core.h"
 #include "fg-reg.h"
 
@@ -407,6 +408,11 @@ module_param_named(
 
 static int fg_restart;
 static bool fg_sram_dump;
+
+struct battery_name {
+	struct switch_dev battery_switch_dev;
+	char battery_name_type[100];
+} battery_name;
 
 /* All getters HERE */
 
@@ -943,6 +949,28 @@ static int fg_batt_missing_config(struct fg_chip *chip, bool enable)
 	return rc;
 }
 
+ssize_t battery_print_name(struct switch_dev *sdev, char *buf)
+{
+	return sprintf(buf, "%s\n", battery_name.battery_name_type);
+}
+
+static int battery_switch_register(void)
+{
+	int ret;
+
+	battery_name.battery_switch_dev.name = "battery";
+	battery_name.battery_switch_dev.print_name = battery_print_name;
+	ret = switch_dev_register(&battery_name.battery_switch_dev);
+	if (ret < 0)
+		return ret;
+
+	battery_name.battery_switch_dev.state = 0;
+	switch_set_state(&battery_name.battery_switch_dev,
+		battery_name.battery_switch_dev.state);
+
+	return 0;
+}
+
 static int fg_get_batt_id(struct fg_chip *chip)
 {
 	int rc, ret, batt_id = 0;
@@ -1008,6 +1036,9 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 		return rc;
 	}
 
+	strcpy(battery_name.battery_name_type, chip->bp.batt_type_str);
+	battery_switch_register();
+
 	rc = of_property_read_u32(profile_node, "qcom,max-voltage-uv",
 			&chip->bp.float_volt_uv);
 	if (rc < 0) {
@@ -1024,6 +1055,8 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 
 	rc = of_property_read_u32(profile_node, "qcom,fg-cc-cv-threshold-mv",
 			&chip->bp.vbatt_full_mv);
+	pr_info("enter %s chip->bp.vbatt_full_mv=%d\n",
+		__func__, chip->bp.vbatt_full_mv);
 	if (rc < 0) {
 		pr_err("battery cc_cv threshold unavailable, rc:%d\n", rc);
 		chip->bp.vbatt_full_mv = -EINVAL;
@@ -1812,6 +1845,7 @@ static int fg_charge_full_update(struct fg_chip *chip)
 	recharge_soc = chip->dt.recharge_soc_thr;
 	recharge_soc = DIV_ROUND_CLOSEST(recharge_soc * FULL_SOC_RAW,
 				FULL_CAPACITY);
+	pr_info("enter %s recharge_soc=%d\n", __func__, recharge_soc);
 	rc = fg_get_sram_prop(chip, FG_SRAM_BATT_SOC, &bsoc);
 	if (rc < 0) {
 		pr_err("Error in getting BATT_SOC, rc=%d\n", rc);
@@ -1825,11 +1859,13 @@ static int fg_charge_full_update(struct fg_chip *chip)
 		pr_err("Error in getting msoc_raw, rc=%d\n", rc);
 		goto out;
 	}
+	pr_info("enter %s msoc_raw=%d\n", __func__, msoc_raw);
 	msoc = DIV_ROUND_CLOSEST(msoc_raw * FULL_CAPACITY, FULL_SOC_RAW);
 
 	fg_dbg(chip, FG_STATUS, "msoc: %d bsoc: %x health: %d status: %d full: %d\n",
 		msoc, bsoc, chip->health, chip->charge_status,
 		chip->charge_full);
+	pr_info("enter %s msoc: %d bsoc: %x\n", __func__, msoc, bsoc);
 	if (chip->charge_done && !chip->charge_full) {
 		if (msoc >= 99 && chip->health == POWER_SUPPLY_HEALTH_GOOD) {
 			fg_dbg(chip, FG_STATUS, "Setting charge_full to true\n");
@@ -1895,6 +1931,8 @@ static int fg_charge_full_update(struct fg_chip *chip)
 		chip->charge_full = false;
 		fg_dbg(chip, FG_STATUS, "msoc_raw = %d bsoc: %d recharge_soc: %d delta_soc: %d\n",
 			msoc_raw, bsoc >> 8, recharge_soc, chip->delta_soc);
+		pr_info("enter %s msoc_raw = %d bsoc: %d recharge_soc: %d\n",
+			__func__, msoc_raw, bsoc >> 8, recharge_soc);
 	}
 
 out:
@@ -2021,7 +2059,7 @@ static int fg_set_constant_chg_voltage(struct fg_chip *chip, int volt_uv)
 {
 	u8 buf[2];
 	int rc;
-
+	pr_info("%s volt_uv=%d\n", __func__, volt_uv);
 	if (volt_uv <= 0 || volt_uv > 15590000) {
 		pr_err("Invalid voltage %d\n", volt_uv);
 		return -EINVAL;
@@ -2743,6 +2781,7 @@ static void status_change_work(struct work_struct *work)
 	}
 
 	chip->charge_done = prop.intval;
+	pr_info("%s chip->charge_done=%d\n", __func__, chip->charge_done);
 	fg_cycle_counter_update(chip);
 	fg_cap_learning_update(chip);
 
@@ -5045,6 +5084,11 @@ static int fg_parse_dt(struct fg_chip *chip)
 				rc);
 	}
 
+	pr_info("%s:  HW jeita cold:%d,cool:%d,warm:%d,hot:%d\n",
+		__func__, chip->dt.jeita_thresholds[JEITA_COLD],
+		chip->dt.jeita_thresholds[JEITA_COOL],
+		chip->dt.jeita_thresholds[JEITA_WARM],
+		chip->dt.jeita_thresholds[JEITA_HOT]);
 	if (of_property_count_elems_of_size(node,
 		"qcom,battery-thermal-coefficients",
 		sizeof(u8)) == BATT_THERM_NUM_COEFFS) {
@@ -5504,6 +5548,15 @@ static void fg_gen3_shutdown(struct platform_device *pdev)
 {
 	struct fg_chip *chip = dev_get_drvdata(&pdev->dev);
 	int rc, bsoc;
+	u8 status;
+
+	rc = fg_read(chip, BATT_INFO_BATT_MISS_CFG(chip), &status, 1);
+	rc = fg_masked_write(chip, BATT_INFO_BATT_MISS_CFG(chip),
+			BM_FROM_BATT_ID_BIT, 0);
+	if (rc < 0)
+		pr_err("Error in writing to %04x, rc=%d\n",
+			BATT_INFO_BATT_MISS_CFG(chip), rc);
+	rc = fg_read(chip, BATT_INFO_BATT_MISS_CFG(chip), &status, 1);
 
 	if (chip->charge_full) {
 		rc = fg_get_sram_prop(chip, FG_SRAM_BATT_SOC, &bsoc);
