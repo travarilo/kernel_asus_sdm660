@@ -74,7 +74,6 @@ extern struct switch_dev usb_otg_dev;
 extern bool demo_app_property_flag;
 extern int charger_limit_enable_flag;
 extern int charger_limit_value;
-extern int BR_countrycode;
 bool smartchg_stop_flag;
 static bool asus_flow_processing;
 int asus_get_prop_batt_temp(struct smb_charger *chg);
@@ -3725,10 +3724,10 @@ void jeita_rule(void)
 	bat_volt = asus_get_prop_batt_volt(smbchg_dev);
 	bat_capacity = asus_get_prop_batt_capacity(smbchg_dev);
 	state = smbchg_jeita_judge_state(state, bat_temp);
-	pr_info("%s: state=%d,batt_health = %s, bat_temp = %d, bat_volt = %d, bat_capacity=%d,ICL = 0x%x, FV_reg=0x%x, Countrycode %d\n",
+	pr_info("%s: state=%d,batt_health = %s, bat_temp = %d, bat_volt = %d, bat_capacity=%d,ICL = 0x%x, FV_reg=0x%x\n",
 		__func__, state, health_type[bat_health],
 		bat_temp, bat_volt, bat_capacity, ICL_reg,
-		FV_reg, BR_countrycode);
+		FV_reg);
 
 	switch (state) {
 	case JEITA_STATE_LESS_THAN_0:
@@ -4069,14 +4068,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 			usb_max_current = ICL_2000mA;
 		break;
 	case OTHERS:
-		if (BR_countrycode == COUNTRY_BR ||
-		    BR_countrycode == COUNTRY_IN) {
-			usb_max_current = ICL_2000mA;
-			pr_info("%s country BR or IN\n", __func__);
-		} else {
-			pr_info("%s ASUS_ADAPTER_ID OTHERS\n", __func__);
-			usb_max_current = ICL_1000mA;
-		}
+		usb_max_current = ICL_2000mA;
 		break;
 	case ADC_NOT_READY:
 		usb_max_current = ICL_1000mA;

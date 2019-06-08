@@ -189,7 +189,6 @@ struct smb2 {
 struct smb_charger *smbchg_dev;
 struct timespec last_jeita_time;
 struct wake_lock asus_chg_lock;
-int BR_countrycode;
 bool demo_app_property_flag;
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
@@ -2543,64 +2542,6 @@ static const struct attribute_group asus_smblib_attr_group = {
 	.attrs = asus_smblib_attrs,
 };
 
-static struct proc_dir_entry *countrycode_entry;
-char countrycode[32];
-
-static ssize_t
-countrycode_proc_write(struct file *filp, const char *ubuf, size_t cnt,
-		       loff_t *data)
-{
-	size_t copy_size = cnt;
-
-	if (cnt >= sizeof(countrycode))
-		copy_size = sizeof(countrycode);
-
-	if (copy_from_user(&countrycode, ubuf, copy_size)) {
-		pr_err("%s: copy_from_user failed!\n", __func__);
-		return -EFAULT;
-	}
-
-	countrycode[copy_size] = 0;
-	return copy_size;
-}
-
-static int countrycode_proc_show(struct seq_file *m, void *v)
-{
-	seq_printf(m, "%s\n", countrycode);
-	return 0;
-}
-
-static int countrycode_proc_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, countrycode_proc_show, inode->i_private);
-}
-
-static const struct file_operations countrycode_proc_ops = {
-	.open = countrycode_proc_open,
-	.write = countrycode_proc_write,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
-};
-
-static int init_proc_countrycode(void)
-{
-	int ret = 0;
-
-	countrycode_entry = proc_create("countrycode", 0666, NULL,
-					&countrycode_proc_ops);
-	if (countrycode_entry == NULL) {
-		pr_err("%s: create_proc entry %s failed!\n",
-		       __func__, "countrycode");
-		return -ENOMEM;
-	}
-
-	pr_info("%s: create proc entry %s success\n", __func__, "countrycode");
-	ret = 0;
-
-	return ret;
-}
-
 int32_t get_ID_vadc_voltage(void)
 {
 	struct qpnp_vadc_chip *vadc_dev;
@@ -2620,75 +2561,6 @@ int32_t get_ID_vadc_voltage(void)
 		__func__, adc, adc_result.physical, adc_result.chan);
 
 	return adc;
-}
-
-#define COUNTRY_CODE_PATH "/persist/flag/countrycode.txt"
-void read_BR_countrycode_work(struct work_struct *work)
-{
-	struct file *fp = NULL;
-	mm_segment_t old_fs;
-	loff_t pos_lsts = 0;
-	char buf[32];
-	int readlen = 0;
-	int cnt = 5;
-
-	if (strlen(countrycode)) {
-		pr_err("%s: countrycode from proc is not null: %s!\n",
-		       __func__, countrycode);
-		strcpy(buf, countrycode);
-		goto out;
-	}
-
-	fp = filp_open(COUNTRY_CODE_PATH, O_RDONLY, 0);
-	if (IS_ERR_OR_NULL(fp)) {
-		pr_err("%s: OPEN (%s) failed!\n",
-		       __func__, COUNTRY_CODE_PATH);
-		if (--cnt >= 0)
-			schedule_delayed_work
-				(&smbchg_dev->read_countrycode_work,
-				 msecs_to_jiffies(3000));
-		return;
-	}
-	/* For purpose that can use read/write system call */
-	if (fp->f_op != NULL) {
-		old_fs = get_fs();
-		set_fs(KERNEL_DS);
-		pos_lsts = 0;
-		readlen = vfs_read(fp, buf, strlen(buf), &pos_lsts);
-		if (readlen < 0) {
-			set_fs(old_fs);
-			filp_close(fp, NULL);
-			if (--cnt >= 0)
-				schedule_delayed_work
-					(&smbchg_dev->read_countrycode_work,
-					 msecs_to_jiffies(3000));
-			return;
-		}
-		buf[readlen] = '\0';
-	} else {
-		pr_err("%s read (%s) error\n", __func__, COUNTRY_CODE_PATH);
-		if (--cnt >= 0)
-			schedule_delayed_work
-				(&smbchg_dev->read_countrycode_work,
-				 msecs_to_jiffies(3000));
-		return;
-	}
-out:
-	if (strcmp(buf, "BR") == 0)
-		BR_countrycode = COUNTRY_BR;
-	else if (strcmp(buf, "IN") == 0)
-		BR_countrycode = COUNTRY_IN;
-	else
-		BR_countrycode = COUNTRY_OTHER;
-
-	pr_info("%s: country code : %s, type %d\n",
-		__func__, buf, BR_countrycode);
-	if (fp != NULL) {
-		if (fp->f_op != NULL)
-			set_fs(old_fs);
-		filp_close(fp, NULL);
-	}
-	return;
 }
 
 static int smb2_probe(struct platform_device *pdev)
@@ -2755,11 +2627,6 @@ static int smb2_probe(struct platform_device *pdev)
 		pr_err("parent regmap is missing\n");
 		return -EINVAL;
 	}
-
-	INIT_DELAYED_WORK(&chg->read_countrycode_work,
-			  read_BR_countrycode_work);
-	schedule_delayed_work(&chg->read_countrycode_work,
-			      msecs_to_jiffies(8000));
 
 	rc = smb2_chg_config_init(chip);
 	if (rc < 0) {
@@ -2876,7 +2743,6 @@ static int smb2_probe(struct platform_device *pdev)
 	}
 
 	init_proc_charger_limit();
-	init_proc_countrycode();
 
 	smb2_create_debugfs(chip);
 
