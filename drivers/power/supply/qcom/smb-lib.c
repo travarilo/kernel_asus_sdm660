@@ -73,7 +73,6 @@ static bool usb_otg_present;
 void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 
 extern struct switch_dev usb_otg_dev;
-extern bool demo_app_property_flag;
 bool smartchg_stop_flag;
 extern int charger_limit_enable_flag;
 extern int charger_limit_value;
@@ -3432,11 +3431,6 @@ void asus_batt_RTC_work(struct work_struct *dat)
 #define VADC_THD_900MV  900
 #define VADC_THD_1000MV  1000
 
-#define	DEMO_DISCHG_THD			60
-#define	DEMO_CHG_THD			58
-//#define	DEMO_NON_CHG_THD	58
-int demo_chg_status = DEMO_CHG_THD;
-
 void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 {
 	//asus_flow_done_flag = 1;
@@ -3681,7 +3675,6 @@ void jeita_rule(void)
 	u8 ICL_reg;
 	u8 FCC_reg;
 	u8 USBIN_ICL_reg;
-	bool demo_stop_charging_flag = 0;
 
 	rc = smblib_write(smbchg_dev, JEITA_EN_CFG_REG, 0x10);
 	if (rc < 0)
@@ -3765,30 +3758,9 @@ void jeita_rule(void)
 		break;
 	}
 
-	if (demo_app_property_flag) {
-		if (bat_capacity >= DEMO_DISCHG_THD)
-			demo_chg_status = DEMO_DISCHG_THD;
-		else if (bat_capacity <= DEMO_CHG_THD)
-			demo_chg_status = DEMO_CHG_THD;
-
-		if (demo_chg_status == DEMO_DISCHG_THD)
-			smblib_set_usb_suspend(smbchg_dev, true);
-		else if (!usb_alert_usb_otg_disable)
-			smblib_set_usb_suspend(smbchg_dev, false);
-
-		if (demo_chg_status == DEMO_CHG_THD)
-			demo_stop_charging_flag = false;
-		else
-			demo_stop_charging_flag = true;
-	}
-
-	pr_info("%s: soc=%d, demo_flag=%d, stop_flag=%d\n",
-		__func__, bat_capacity, demo_app_property_flag,
-		demo_stop_charging_flag);
-
-	if (smartchg_stop_flag || demo_stop_charging_flag) {
-		pr_info("%s: Stop charging, smart=%d, demo=%d\n", __func__,
-			smartchg_stop_flag, demo_stop_charging_flag);
+	if (smartchg_stop_flag) {
+		pr_info("%s: Stop charging, smart=%d\n", __func__,
+			smartchg_stop_flag);
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 	}
 
