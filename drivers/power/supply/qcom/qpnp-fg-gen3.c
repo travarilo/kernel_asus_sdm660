@@ -1055,8 +1055,7 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 
 	rc = of_property_read_u32(profile_node, "qcom,fg-cc-cv-threshold-mv",
 			&chip->bp.vbatt_full_mv);
-	pr_info("enter %s chip->bp.vbatt_full_mv=%d\n",
-		__func__, chip->bp.vbatt_full_mv);
+	pr_debug("chip->bp.vbatt_full_mv=%d\n", chip->bp.vbatt_full_mv);
 	if (rc < 0) {
 		pr_err("battery cc_cv threshold unavailable, rc:%d\n", rc);
 		chip->bp.vbatt_full_mv = -EINVAL;
@@ -1845,7 +1844,7 @@ static int fg_charge_full_update(struct fg_chip *chip)
 	recharge_soc = chip->dt.recharge_soc_thr;
 	recharge_soc = DIV_ROUND_CLOSEST(recharge_soc * FULL_SOC_RAW,
 				FULL_CAPACITY);
-	pr_info("enter %s recharge_soc=%d\n", __func__, recharge_soc);
+	pr_debug("recharge_soc=%d\n", recharge_soc);
 	rc = fg_get_sram_prop(chip, FG_SRAM_BATT_SOC, &bsoc);
 	if (rc < 0) {
 		pr_err("Error in getting BATT_SOC, rc=%d\n", rc);
@@ -1859,13 +1858,13 @@ static int fg_charge_full_update(struct fg_chip *chip)
 		pr_err("Error in getting msoc_raw, rc=%d\n", rc);
 		goto out;
 	}
-	pr_info("enter %s msoc_raw=%d\n", __func__, msoc_raw);
+	pr_debug("msoc_raw=%d\n", msoc_raw);
 	msoc = DIV_ROUND_CLOSEST(msoc_raw * FULL_CAPACITY, FULL_SOC_RAW);
 
 	fg_dbg(chip, FG_STATUS, "msoc: %d bsoc: %x health: %d status: %d full: %d\n",
 		msoc, bsoc, chip->health, chip->charge_status,
 		chip->charge_full);
-	pr_info("enter %s msoc: %d bsoc: %x\n", __func__, msoc, bsoc);
+	pr_debug("msoc: %d bsoc: %x\n", msoc, bsoc);
 	if (chip->charge_done && !chip->charge_full) {
 		if (msoc >= 99 && chip->health == POWER_SUPPLY_HEALTH_GOOD) {
 			fg_dbg(chip, FG_STATUS, "Setting charge_full to true\n");
@@ -1931,8 +1930,8 @@ static int fg_charge_full_update(struct fg_chip *chip)
 		chip->charge_full = false;
 		fg_dbg(chip, FG_STATUS, "msoc_raw = %d bsoc: %d recharge_soc: %d delta_soc: %d\n",
 			msoc_raw, bsoc >> 8, recharge_soc, chip->delta_soc);
-		pr_info("enter %s msoc_raw = %d bsoc: %d recharge_soc: %d\n",
-			__func__, msoc_raw, bsoc >> 8, recharge_soc);
+		pr_debug("msoc_raw = %d bsoc: %d recharge_soc: %d\n",
+			msoc_raw, bsoc >> 8, recharge_soc);
 	}
 
 out:
@@ -2059,7 +2058,8 @@ static int fg_set_constant_chg_voltage(struct fg_chip *chip, int volt_uv)
 {
 	u8 buf[2];
 	int rc;
-	pr_info("%s volt_uv=%d\n", __func__, volt_uv);
+
+	pr_info("volt_uv=%d\n", volt_uv);
 	if (volt_uv <= 0 || volt_uv > 15590000) {
 		pr_err("Invalid voltage %d\n", volt_uv);
 		return -EINVAL;
@@ -2781,7 +2781,7 @@ static void status_change_work(struct work_struct *work)
 	}
 
 	chip->charge_done = prop.intval;
-	pr_info("%s chip->charge_done=%d\n", __func__, chip->charge_done);
+	pr_debug("chip->charge_done=%d\n", chip->charge_done);
 	fg_cycle_counter_update(chip);
 	fg_cap_learning_update(chip);
 
@@ -5084,8 +5084,8 @@ static int fg_parse_dt(struct fg_chip *chip)
 				rc);
 	}
 
-	pr_info("%s:  HW jeita cold:%d,cool:%d,warm:%d,hot:%d\n",
-		__func__, chip->dt.jeita_thresholds[JEITA_COLD],
+	pr_info("HW jeita cold=%d, cool=%d, warm=%d, hot=%d\n",
+		chip->dt.jeita_thresholds[JEITA_COLD],
 		chip->dt.jeita_thresholds[JEITA_COOL],
 		chip->dt.jeita_thresholds[JEITA_WARM],
 		chip->dt.jeita_thresholds[JEITA_HOT]);
