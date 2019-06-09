@@ -115,7 +115,6 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 			USBIN_AICL_EN_BIT, 0);
 	/* Add a delay so that AICL successfully clears */
 	msleep(50);
-	pr_info("%s: start\n", __func__);
 	smblib_masked_write(chg, USBIN_AICL_OPTIONS_CFG_REG,
 			USBIN_AICL_EN_BIT, USBIN_AICL_EN_BIT);
 }
@@ -3472,14 +3471,14 @@ static int SW_recharge(struct smb_charger *chg)
 
 	rc = smblib_read(chg, BATTERY_CHARGER_STATUS_1_REG, &termination_reg);
 	if (rc < 0)
-		pr_err("%s:  Couldn't read BATTERY_CHARGER_STATUS_1_REG\n",
+		pr_err("%s: Couldn't read BATTERY_CHARGER_STATUS_1_REG\n",
 		       __func__);
-	pr_info("%s:  termination_reg=0x%x\n", __func__, termination_reg);
+	pr_info("%s: termination_reg=0x%x\n", __func__, termination_reg);
 	if ((termination_reg & BATTERY_CHARGER_STATUS_MASK) == 0x05)
 		termination_done = 1;
 
 	capacity = asus_get_prop_batt_capacity(smbchg_dev);
-	pr_debug("%s:  bat_capacity = %d, termination_reg = 0x%x\n",
+	pr_debug("%s: bat_capacity = %d, termination_reg = 0x%x\n",
 		 __func__, capacity, termination_reg);
 	if (capacity <= 98 && termination_done) {
 		pr_info("%s: will start SW recharge\n", __func__);
@@ -3553,7 +3552,6 @@ static int jeita_status_regs_write(u8 chg_en, u8 FV_CFG, u8 FCC)
 	int rc;
 	u8 ICL_reg;
 
-	pr_info("%s: start\n", __func__);
 	rc = smblib_masked_write(smbchg_dev, CHARGING_ENABLE_CMD_REG,
 			CHARGING_ENABLE_CMD_BIT, chg_en);
 	if (rc < 0) {
@@ -3589,9 +3587,8 @@ static int jeita_status_regs_write(u8 chg_en, u8 FV_CFG, u8 FCC)
 	if (rc < 0)
 		pr_err("%s: Couldn't read USBIN_CURRENT_LIMIT_CFG_REG\n",
 		       __func__);
-	pr_info("%s: ICL2 = 0x%x\n", __func__, ICL_reg);
+	pr_info("%s: ICL2=0x%x\n", __func__, ICL_reg);
 
-	pr_info("%s: end\n", __func__);
 	return 0;
 }
 
@@ -3701,7 +3698,7 @@ void jeita_rule(void)
 	if (rc < 0)
 		pr_err("%s: Couldn't read USBIN_ICL_reg\n", __func__);
 
-	pr_info("%s: Read fast CC=0x%x,USBIN_ICL_reg=0x%x\n",
+	pr_info("%s: Read fast CC=0x%x, USBIN_ICL_reg=0x%x\n",
 		__func__, FCC_reg, USBIN_ICL_reg);
 
 	bat_health = asus_get_batt_health();
@@ -3717,7 +3714,7 @@ void jeita_rule(void)
 	bat_volt = asus_get_prop_batt_volt(smbchg_dev);
 	bat_capacity = asus_get_prop_batt_capacity(smbchg_dev);
 	state = smbchg_jeita_judge_state(state, bat_temp);
-	pr_info("%s: state=%d,batt_health = %s, bat_temp = %d, bat_volt = %d, bat_capacity=%d,ICL = 0x%x, FV_reg=0x%x\n",
+	pr_info("%s: state=%d, batt_health = %s, bat_temp = %d, bat_volt = %d, bat_capacity=%d, ICL=0x%x, FV_reg=0x%x\n",
 		__func__, state, health_type[bat_health],
 		bat_temp, bat_volt, bat_capacity, ICL_reg,
 		FV_reg);
@@ -3825,7 +3822,7 @@ void asus_min_monitor_work(struct work_struct *work)
 				      msecs_to_jiffies(ASUS_MONITOR_CYCLE));
 		schedule_delayed_work(&smbchg_dev->asus_batt_RTC_work, 0);
 	}
-	pr_info("%s: end\n", __func__);
+
 	asus_smblib_relax(smbchg_dev);
 }
 
@@ -4081,7 +4078,6 @@ void asus_insertion_initial_settings(struct smb_charger *chg)
 	int rc;
 	u8 USBIN_cc;
 
-	pr_info("%s: start\n", __func__);
 //No.1
 	rc = smblib_write(chg, PRE_CHARGE_CURRENT_CFG_REG, 0x06);
 	if (rc < 0) {
