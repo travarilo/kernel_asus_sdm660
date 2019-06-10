@@ -446,35 +446,7 @@ static ssize_t sensors_calibrate_store(struct device *dev,
 	}
 	return size;
 }
-#if 0
-static struct device_attribute sensors_class_attrs[] =
-{
-        __ATTR(name, 0444, sensors_name_show, NULL),
-        __ATTR(vendor, 0444, sensors_vendor_show, NULL),
-        __ATTR(version, 0444, sensors_version_show, NULL),
-        __ATTR(handle, 0444, sensors_handle_show, NULL),
-        __ATTR(type, 0444, sensors_type_show, NULL),
-        __ATTR(max_range, 0444, sensors_max_range_show, NULL),
-        __ATTR(resolution, 0444, sensors_resolution_show, NULL),
-        __ATTR(sensor_power, 0444, sensors_power_show, NULL),
-        __ATTR(min_delay, 0444, sensors_min_delay_show, NULL),
-        __ATTR(fifo_reserved_event_count, 0444, sensors_fifo_event_show, NULL),
-        __ATTR(fifo_max_event_count, 0444, sensors_fifo_max_show, NULL),
-        __ATTR(max_delay, 0444, sensors_max_delay_show, NULL),
-        __ATTR(flags, 0444, sensors_flags_show, NULL),
-        __ATTR(enable, 0664, sensors_enable_show, sensors_enable_store),
-        __ATTR(enable_wakeup, 0664, sensors_enable_wakeup_show,
-        sensors_enable_wakeup_store),
-        __ATTR(poll_delay, 0664, sensors_delay_show, sensors_delay_store),
-        __ATTR(self_test, 0440, sensors_test_show, NULL),
-        __ATTR(max_latency, 0660, sensors_max_latency_show,
-        sensors_max_latency_store),
-        __ATTR(flush, 0660, sensors_flush_show, sensors_flush_store),
-        __ATTR(calibrate, 0664, sensors_calibrate_show,
-        sensors_calibrate_store),
-        __ATTR_NULL,
-};
-#endif
+
 /**
  * sensors_classdev_register - register a new object of sensors_classdev class.
  * @parent: The device to register.
@@ -483,7 +455,6 @@ static struct device_attribute sensors_class_attrs[] =
 int sensors_classdev_register(struct device *parent,
 			      struct sensors_classdev *sensors_cdev)
 {
-	printk("zch---in sensors_classdev_register\n");
 	sensors_cdev->dev =
 		device_create(sensors_class, parent, 0, sensors_cdev, "%s",
 			      sensors_cdev->name);
@@ -494,8 +465,8 @@ int sensors_classdev_register(struct device *parent,
 	list_add_tail(&sensors_cdev->node, &sensors_list);
 	up_write(&sensors_list_lock);
 
-	printk("zch---sensors_classdev_register Registered sensors device: %s\n",
-	       sensors_cdev->name);
+	pr_debug("%s:, Registered sensors device: %s\n",
+		__func__, sensors_cdev->name);
 	return 0;
 }
 EXPORT_SYMBOL(sensors_classdev_register);
@@ -514,38 +485,6 @@ void sensors_classdev_unregister(struct sensors_classdev *sensors_cdev)
 }
 EXPORT_SYMBOL(sensors_classdev_unregister);
 
-#if 1 // new add by zch
-
-#if 0
-static struct device_attribute sensors_class_attrs[] =
-{
-        __ATTR(name, 0444, sensors_name_show, NULL),
-        __ATTR(vendor, 0444, sensors_vendor_show, NULL),
-        __ATTR(version, 0444, sensors_version_show, NULL),
-        __ATTR(handle, 0444, sensors_handle_show, NULL),
-        __ATTR(type, 0444, sensors_type_show, NULL),
-        __ATTR(max_range, 0444, sensors_max_range_show, NULL),
-        __ATTR(resolution, 0444, sensors_resolution_show, NULL),
-        __ATTR(sensor_power, 0444, sensors_power_show, NULL),
-        __ATTR(min_delay, 0444, sensors_min_delay_show, NULL),
-        __ATTR(fifo_reserved_event_count, 0444, sensors_fifo_event_show, NULL),
-        __ATTR(fifo_max_event_count, 0444, sensors_fifo_max_show, NULL),
-        __ATTR(max_delay, 0444, sensors_max_delay_show, NULL),
-        __ATTR(flags, 0444, sensors_flags_show, NULL),
-        __ATTR(enable, 0664, sensors_enable_show, sensors_enable_store),
-        __ATTR(enable_wakeup, 0664, sensors_enable_wakeup_show,
-        sensors_enable_wakeup_store),
-        __ATTR(poll_delay, 0664, sensors_delay_show, sensors_delay_store),
-        __ATTR(self_test, 0440, sensors_test_show, NULL),
-        __ATTR(max_latency, 0660, sensors_max_latency_show,
-        sensors_max_latency_store),
-        __ATTR(flush, 0660, sensors_flush_show, sensors_flush_store),
-        __ATTR(calibrate, 0664, sensors_calibrate_show,
-        sensors_calibrate_store),
-        __ATTR_NULL,
-};
-
-#endif
 static DEVICE_ATTR_RO(sensors_name);
 static DEVICE_ATTR_RO(sensors_vendor);
 static DEVICE_ATTR_RO(sensors_version);
@@ -600,13 +539,11 @@ static const struct attribute_group *sensor_groups[] = {
 	NULL,
 };
 
-#endif
 static int __init sensors_init(void)
 {
 	sensors_class = class_create(THIS_MODULE, "sensors");
 	if (IS_ERR(sensors_class))
 		return PTR_ERR(sensors_class);
-	//sensors_class->dev_attrs = sensors_class_attrs;
 	sensors_class->dev_groups = sensor_groups;
 
 	return 0;
