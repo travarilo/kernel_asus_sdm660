@@ -41,9 +41,6 @@
 #ifdef CONFIG_OF
 #include <linux/of_gpio.h>
 #endif
-#ifdef CONFIG_HAS_EARLYSUSPEND
-//#include <linux/earlysuspend.h>
-#endif
 
 #define DRIVER_VERSION "3.11.0"
 
@@ -393,9 +390,6 @@ struct stk3x1x_data {
 	int int_pin;
 	uint8_t wait_reg;
 	uint8_t int_reg;
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	//struct early_suspend stk_early_suspend;
-#endif
 	uint16_t ps_thd_h;
 	uint16_t ps_thd_l;
 #ifdef CALI_PS_EVERY_TIME
