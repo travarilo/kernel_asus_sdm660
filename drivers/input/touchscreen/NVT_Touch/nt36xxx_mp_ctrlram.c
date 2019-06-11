@@ -106,7 +106,7 @@ static int nvt_mp_buffer_init(void)
 
 	RecordResult_Short = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_Short) {
-		NVT_ERR("kzalloc for RecordResult_Short failed!\n");
+		pr_err("kzalloc for RecordResult_Short failed!\n");
 		return -ENOMEM;
 	}
 
@@ -114,25 +114,25 @@ static int nvt_mp_buffer_init(void)
 
 	RecordResult_Short_Base = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_Short_Base) {
-		NVT_ERR("kzalloc for RecordResult_Short_Base failed!\n");
+		pr_err("kzalloc for RecordResult_Short_Base failed!\n");
 		return -ENOMEM;
 	}
 
 	RecordResult_Open = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_Open) {
-		NVT_ERR("kzalloc for RecordResult_Open failed!\n");
+		pr_err("kzalloc for RecordResult_Open failed!\n");
 		return -ENOMEM;
 	}
 
 	RecordResult_FWMutual = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_FWMutual) {
-		NVT_ERR("kzalloc for RecordResult_FWMutual failed!\n");
+		pr_err("kzalloc for RecordResult_FWMutual failed!\n");
 		return -ENOMEM;
 	}
 
 	RecordResult_FW_CC = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_FW_CC) {
-		NVT_ERR("kzalloc for RecordResult_FW_CC failed!\n");
+		pr_err("kzalloc for RecordResult_FW_CC failed!\n");
 		return -ENOMEM;
 	}
 
@@ -140,25 +140,25 @@ static int nvt_mp_buffer_init(void)
 
 	RecordResult_FW_CC_Q = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_FW_CC_Q) {
-		NVT_ERR("kzalloc for RecordResult_FW_CC_Q failed!\n");
+		pr_err("kzalloc for RecordResult_FW_CC_Q failed!\n");
 		return -ENOMEM;
 	}
 
 	RecordResult_FW_DiffMax = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_FW_DiffMax) {
-		NVT_ERR("kzalloc for RecordResult_FW_DiffMax failed!\n");
+		pr_err("kzalloc for RecordResult_FW_DiffMax failed!\n");
 		return -ENOMEM;
 	}
 
 	RecordResult_FW_DiffMin = (uint8_t *)kzalloc(RecordResult_BufSize, GFP_KERNEL);
 	if (!RecordResult_FW_DiffMin) {
-		NVT_ERR("kzalloc for RecordResult_FW_DiffMin failed!\n");
+		pr_err("kzalloc for RecordResult_FW_DiffMin failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_Short = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Short) {
-		NVT_ERR("kzalloc for RawData_Short failed!\n");
+		pr_err("kzalloc for RawData_Short failed!\n");
 		return -ENOMEM;
 	}
 
@@ -166,43 +166,43 @@ static int nvt_mp_buffer_init(void)
 
 	RawData_Short_Base = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Short_Base) {
-		NVT_ERR("kzalloc for RawData_Short_Base failed!\n");
+		pr_err("kzalloc for RawData_Short_Base failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_Open = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Open) {
-		NVT_ERR("kzalloc for RawData_Open failed!\n");
+		pr_err("kzalloc for RawData_Open failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_Diff = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Diff) {
-		NVT_ERR("kzalloc for RawData_Diff failed!\n");
+		pr_err("kzalloc for RawData_Diff failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_Diff_Min = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Diff_Min) {
-		NVT_ERR("kzalloc for RawData_Diff_Min failed!\n");
+		pr_err("kzalloc for RawData_Diff_Min failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_Diff_Max = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_Diff_Max) {
-		NVT_ERR("kzalloc for RawData_Diff_Max failed!\n");
+		pr_err("kzalloc for RawData_Diff_Max failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_FWMutual = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_FWMutual) {
-		NVT_ERR("kzalloc for RawData_FWMutual failed!\n");
+		pr_err("kzalloc for RawData_FWMutual failed!\n");
 		return -ENOMEM;
 	}
 
 	RawData_FW_CC = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_FW_CC) {
-		NVT_ERR("kzalloc for RawData_FW_CC failed!\n");
+		pr_err("kzalloc for RawData_FW_CC failed!\n");
 		return -ENOMEM;
 	}
 
@@ -210,7 +210,7 @@ static int nvt_mp_buffer_init(void)
 
 	RawData_FW_CC_Q = (int32_t *)kzalloc(RawData_BufSize, GFP_KERNEL);
 	if (!RawData_FW_CC_Q) {
-		NVT_ERR("kzalloc for RawData_FW_CC_Q failed!\n");
+		pr_err("kzalloc for RawData_FW_CC_Q failed!\n");
 		return -ENOMEM;
 	}
 
@@ -248,7 +248,7 @@ static void nvt_print_lmt_array(int32_t *array, int32_t x_ch, int32_t y_ch)
 // Huaqin add for disable printk. by zhengwu.lu. at 2018/03/06  start
 static void nvt_print_criteria(void)
 {
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	if (ts->carrier_system) {
 		//---PS_Config_Lmt_Short_Diff---
@@ -320,7 +320,7 @@ static void nvt_print_criteria(void)
 	//printk("PS_Config_Lmt_Key_FW_Diff_N: %5d\n", PS_Config_Lmt_Key_FW_Diff_N);
 #endif /* #if TOUCH_KEY_NUM > 0 */
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 }
 // Huaqin add for disable printk. by zhengwu.lu. at 2018/03/06  end
 static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y_ch, const char *file_path, uint32_t offset)
@@ -342,7 +342,7 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	printk("%s:++\n", __func__);
 	fbufp = (char *)kzalloc(8192, GFP_KERNEL);
 	if (!fbufp) {
-		NVT_ERR("kzalloc for fbufp failed!\n");
+		pr_err("kzalloc for fbufp failed!\n");
 		return -ENOMEM;
 	}
 
@@ -370,7 +370,7 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	set_fs(KERNEL_DS);
 	fp = filp_open(file_path, O_RDWR | O_CREAT, 0644);
 	if (fp == NULL || IS_ERR(fp)) {
-		NVT_ERR("open %s failed\n", file_path);
+		pr_err("open %s failed\n", file_path);
 		set_fs(org_fs);
 		if (fbufp) {
 			kfree(fbufp);
@@ -387,7 +387,7 @@ static int32_t nvt_save_rawdata_to_csv(int32_t *rawdata, uint8_t x_ch, uint8_t y
 	pos = offset;
 	write_ret = vfs_write(fp, (char __user *)fbufp, output_len, &pos);
 	if (write_ret <= 0) {
-		NVT_ERR("write %s failed\n", file_path);
+		pr_err("write %s failed\n", file_path);
 		set_fs(org_fs);
 		if (fp) {
 			filp_close(fp, NULL);
@@ -440,7 +440,7 @@ static int32_t nvt_polling_hand_shake_status(void)
 	}
 
 	if (i >= retry) {
-		NVT_ERR("polling hand shake status failed, buf[1]=0x%02X\n", buf[1]);
+		pr_err("polling hand shake status failed, buf[1]=0x%02X\n", buf[1]);
 		return -1;
 	} else {
 		return 0;
@@ -453,7 +453,7 @@ static int8_t nvt_switch_FreqHopEnDis(uint8_t FreqHopEnDis)
 	uint8_t retry = 0;
 	int8_t ret = 0;
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	for (retry = 0; retry < 20; retry++) {
 		//---set xdata index to EVENT BUF ADDR---
@@ -478,11 +478,11 @@ static int8_t nvt_switch_FreqHopEnDis(uint8_t FreqHopEnDis)
 	}
 
 	if (unlikely(retry == 20)) {
-		NVT_ERR("switch FreqHopEnDis 0x%02X failed, buf[1]=0x%02X\n", FreqHopEnDis, buf[1]);
+		pr_err("switch FreqHopEnDis 0x%02X failed, buf[1]=0x%02X\n", FreqHopEnDis, buf[1]);
 		ret = -1;
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return ret;
 }
@@ -498,7 +498,7 @@ static int32_t nvt_read_baseline(int32_t *xdata)
 	int32_t k = 0;
 #endif /* #if TOUCH_KEY_NUM > 0 */
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	nvt_read_mdata(ts->mmap->BASELINE_ADDR, ts->mmap->BASELINE_BTN_ADDR);
 
@@ -528,11 +528,11 @@ static int32_t nvt_read_baseline(int32_t *xdata)
 	printk("%s:\n", __func__);
 	// Save Rawdata to CSV file
 	if (nvt_save_rawdata_to_csv(xdata, X_Channel, Y_Channel, FW_RAWDATA_CSV_FILE, 0) < 0) {
-		NVT_ERR("save rawdata to CSV file failed\n");
+		pr_err("save rawdata to CSV file failed\n");
 		return -EAGAIN;
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return 0;
 }
@@ -550,7 +550,7 @@ static int32_t nvt_read_CC(int32_t *xdata)
 #endif /* #if TOUCH_KEY_NUM > 0 */
 	uint32_t rawdata_cc_q_offset = 0;
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	if (nvt_get_fw_pipe() == 0)
 		nvt_read_mdata(ts->mmap->DIFF_PIPE1_ADDR, ts->mmap->DIFF_BTN_PIPE1_ADDR);
@@ -589,7 +589,7 @@ static int32_t nvt_read_CC(int32_t *xdata)
 		printk("%s:RawData_CC_I:\n", __func__);
 		// Save Rawdata to CSV file
 		if (nvt_save_rawdata_to_csv(RawData_FW_CC_I, X_Channel, Y_Channel, FW_CC_CSV_FILE, 0) < 0) {
-			NVT_ERR("save rawdata to CSV file failed\n");
+			pr_err("save rawdata to CSV file failed\n");
 			return -EAGAIN;
 		}
 #if TOUCH_KEY_NUM > 0
@@ -600,18 +600,18 @@ static int32_t nvt_read_CC(int32_t *xdata)
 		printk("%s:RawData_CC_Q:\n", __func__);
 		// Save Rawdata to CSV file
 		if (nvt_save_rawdata_to_csv(RawData_FW_CC_Q, X_Channel, Y_Channel, FW_CC_CSV_FILE, rawdata_cc_q_offset) < 0) {
-			NVT_ERR("save rawdata to CSV file failed\n");
+			pr_err("save rawdata to CSV file failed\n");
 			return -EAGAIN;
 		}
 	} else {
 		// Save Rawdata to CSV file
 		if (nvt_save_rawdata_to_csv(xdata, X_Channel, Y_Channel, FW_CC_CSV_FILE, 0) < 0) {
-			NVT_ERR("save rawdata to CSV file failed\n");
+			pr_err("save rawdata to CSV file failed\n");
 			return -EAGAIN;
 		}
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return 0;
 }
@@ -648,7 +648,7 @@ static int32_t nvt_read_fw_noise(int32_t *xdata)
 	int32_t k = 0;
 #endif /* #if TOUCH_KEY_NUM > 0 */
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	//---Enter Test Mode---
 	if (nvt_clear_fw_status()) {
@@ -709,7 +709,7 @@ static int32_t nvt_read_fw_noise(int32_t *xdata)
 	printk("%s:RawData_Diff_Max:\n", __func__);
 	// Save Rawdata to CSV file
 	if (nvt_save_rawdata_to_csv(RawData_Diff_Max, X_Channel, Y_Channel, NOISE_TEST_CSV_FILE, 0) < 0) {
-		NVT_ERR("save rawdata to CSV file failed\n");
+		pr_err("save rawdata to CSV file failed\n");
 		return -EAGAIN;
 	}
 
@@ -722,12 +722,12 @@ static int32_t nvt_read_fw_noise(int32_t *xdata)
 		printk("%s:RawData_Diff_Min:\n", __func__);
 		// Save Rawdata to CSV file
 		if (nvt_save_rawdata_to_csv(RawData_Diff_Min, X_Channel, Y_Channel, NOISE_TEST_CSV_FILE, rawdata_diff_min_offset) < 0) {
-			NVT_ERR("save rawdata to CSV file failed\n");
+			pr_err("save rawdata to CSV file failed\n");
 			return -EAGAIN;
 		}
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return 0;
 }
@@ -782,7 +782,7 @@ static int32_t nvt_read_fw_open(int32_t *xdata)
 	int32_t k = 0;
 #endif /* #if TOUCH_KEY_NUM > 0 */
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	//---Enter Test Mode---
 	if (nvt_clear_fw_status()) {
@@ -801,7 +801,7 @@ static int32_t nvt_read_fw_open(int32_t *xdata)
 	rawdata_buf = (uint8_t *)kzalloc(IC_X_CFG_SIZE * IC_Y_CFG_SIZE * 2, GFP_KERNEL);
 #endif /* #if TOUCH_KEY_NUM > 0 */
 	if (!rawdata_buf) {
-		NVT_ERR("kzalloc for rawdata_buf failed!\n");
+		pr_err("kzalloc for rawdata_buf failed!\n");
 		return -ENOMEM;
 	}
 
@@ -862,11 +862,11 @@ static int32_t nvt_read_fw_open(int32_t *xdata)
 	printk("%s:RawData_Open\n", __func__);
 	// Save RawData to CSV file
 	if (nvt_save_rawdata_to_csv(xdata, X_Channel, Y_Channel, OPEN_TEST_CSV_FILE, 0) < 0) {
-		NVT_ERR("save rawdata to CSV file failed\n");
+		pr_err("save rawdata to CSV file failed\n");
 		return -EAGAIN;
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return 0;
 }
@@ -885,7 +885,7 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
 #endif /* #if TOUCH_KEY_NUM > 0 */
 	uint32_t rawdata_short_base_offset = 0;
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	//---Enter Test Mode---
 	if (nvt_clear_fw_status()) {
@@ -904,7 +904,7 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
     rawdata_buf = (uint8_t *)kzalloc(X_Channel * Y_Channel * 2, GFP_KERNEL);
 #endif /* #if TOUCH_KEY_NUM > 0 */
 	if (!rawdata_buf) {
-		NVT_ERR("kzalloc for rawdata_buf failed!\n");
+		pr_err("kzalloc for rawdata_buf failed!\n");
 		return -ENOMEM;
 	}
 
@@ -1019,7 +1019,7 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
 		printk("%s:RawData_Short\n", __func__);
 	// Save Rawdata to CSV file
 	if (nvt_save_rawdata_to_csv(xdata, X_Channel, Y_Channel, SHORT_TEST_CSV_FILE, 0) < 0) {
-		NVT_ERR("save rawdata to CSV file failed\n");
+		pr_err("save rawdata to CSV file failed\n");
 		return -EAGAIN;
 	}
 	if (ts->carrier_system) {
@@ -1031,12 +1031,12 @@ static int32_t nvt_read_fw_short(int32_t *xdata)
 		printk("%s:RawData_Short_Base:\n", __func__);
 		// Save Rawdata to CSV file
 		if (nvt_save_rawdata_to_csv(RawData_Short_Base, X_Channel, Y_Channel, SHORT_TEST_CSV_FILE, rawdata_short_base_offset) < 0) {
-			NVT_ERR("save rawdata to CSV file failed\n");
+			pr_err("save rawdata to CSV file failed\n");
 			return -EAGAIN;
 		}
 	}
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return 0;
 }
@@ -1254,7 +1254,7 @@ return:
 *******************************************************/
 static int32_t c_show_selftest(struct seq_file *m, void *v)
 {
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	nvt_mp_seq_printf(m, "FW Version: %d\n\n", ts->fw_ver);
 
@@ -1324,7 +1324,7 @@ static int32_t c_show_selftest(struct seq_file *m, void *v)
 
 	nvt_mp_test_result_printed = 1;
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
     return 0;
 }
@@ -1396,7 +1396,7 @@ int32_t ito_selftest_open(void)
 	TestResult_FW_DiffMax = 0;
 	TestResult_FW_DiffMin = 0;
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	if (mutex_lock_interruptible(&ts->lock)) {
 		return -ERESTARTSYS;
@@ -1412,13 +1412,13 @@ int32_t ito_selftest_open(void)
 
 	if (nvt_switch_FreqHopEnDis(FREQ_HOP_DISABLE)) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("switch frequency hopping disable failed!\n");
+		pr_err("switch frequency hopping disable failed!\n");
 		return -EAGAIN;
 	}
 
 	if (nvt_check_fw_reset_state(RESET_STATE_NORMAL_RUN)) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("check fw reset state failed!\n");
+		pr_err("check fw reset state failed!\n");
 		return -EAGAIN;
 	}
 
@@ -1427,7 +1427,7 @@ int32_t ito_selftest_open(void)
 	//---Enter Test Mode---
 	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("clear fw status failed!\n");
+		pr_err("clear fw status failed!\n");
 		return -EAGAIN;
 	}
 
@@ -1435,17 +1435,17 @@ int32_t ito_selftest_open(void)
 
 	if (nvt_check_fw_status()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("check fw status failed!\n");
+		pr_err("check fw status failed!\n");
 		return -EAGAIN;
 	}
 
 	if (nvt_get_fw_info()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("get fw info failed!\n");
+		pr_err("get fw info failed!\n");
 		return -EAGAIN;
 	}
 
-	NVT_ERR("wlb debug :ts->fw_ver = %d \n", ts->fw_ver);
+	pr_err("wlb debug :ts->fw_ver = %d \n", ts->fw_ver);
 
 	//---FW Rawdata Test---
 	if (nvt_read_baseline(RawData_FWMutual) != 0) {
@@ -1553,11 +1553,11 @@ int32_t ito_selftest_open(void)
 											PS_Config_Lmt_Open_Rawdata_P, PS_Config_Lmt_Open_Rawdata_N);
 	}
 
-	NVT_LOG("++TestResult_FWMutual = %d \n",TestResult_FWMutual);
-	NVT_LOG("++TestResult_FW_CC = %d \n",TestResult_FW_CC);
-	NVT_LOG("++TestResult_Noise = %d \n",TestResult_Noise);
-	NVT_LOG("++TestResult_Short = %d \n",TestResult_Short);
-	NVT_LOG("++TestResult_Open = %d \n",TestResult_Open);
+	pr_info("++TestResult_FWMutual = %d \n",TestResult_FWMutual);
+	pr_info("++TestResult_FW_CC = %d \n",TestResult_FW_CC);
+	pr_info("++TestResult_Noise = %d \n",TestResult_Noise);
+	pr_info("++TestResult_Short = %d \n",TestResult_Short);
+	pr_info("++TestResult_Open = %d \n",TestResult_Open);
 
 	if(TestResult_FWMutual == 0 && TestResult_Short == 0 && TestResult_Open == 0 )
 	{
@@ -1567,13 +1567,13 @@ int32_t ito_selftest_open(void)
 	{
 		nvt_TestResultLen = 0;
 	}
-	NVT_LOG(" wlb++ ++++ nvt_TestResultLen = %d\n" , nvt_TestResultLen);
+	pr_info(" wlb++ ++++ nvt_TestResultLen = %d\n" , nvt_TestResultLen);
 	//---Reset IC---
 	nvt_bootloader_reset();
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	//nvt_mp_test_result_printed = 0;
 
@@ -1604,7 +1604,7 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 	TestResult_FW_DiffMax = 0;
 	TestResult_FW_DiffMin = 0;
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 
 	if (mutex_lock_interruptible(&ts->lock)) {
 		return -ERESTARTSYS;
@@ -1620,13 +1620,13 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 
 	if (nvt_switch_FreqHopEnDis(FREQ_HOP_DISABLE)) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("switch frequency hopping disable failed!\n");
+		pr_err("switch frequency hopping disable failed!\n");
 		return -EAGAIN;
 	}
 
 	if (nvt_check_fw_reset_state(RESET_STATE_NORMAL_RUN)) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("check fw reset state failed!\n");
+		pr_err("check fw reset state failed!\n");
 		return -EAGAIN;
 	}
 
@@ -1635,7 +1635,7 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 	//---Enter Test Mode---
 	if (nvt_clear_fw_status()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("clear fw status failed!\n");
+		pr_err("clear fw status failed!\n");
 		return -EAGAIN;
 	}
 
@@ -1643,13 +1643,13 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 
 	if (nvt_check_fw_status()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("check fw status failed!\n");
+		pr_err("check fw status failed!\n");
 		return -EAGAIN;
 	}
 
 	if (nvt_get_fw_info()) {
 		mutex_unlock(&ts->lock);
-		NVT_ERR("get fw info failed!\n");
+		pr_err("get fw info failed!\n");
 		return -EAGAIN;
 	}
 
@@ -1764,7 +1764,7 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	nvt_mp_test_result_printed = 0;
 
@@ -1797,12 +1797,12 @@ void nvt_mp_parse_ain(struct device_node *np, const char *name, uint8_t *array, 
 	data = of_find_property(np, name, &len);
 	len /= sizeof(u32);
 	if ((!data) || (!len) || (len != size)) {
-		NVT_ERR("error find %s. len=%d\n", name, len);
+		pr_err("error find %s. len=%d\n", name, len);
 	} else {
-		NVT_LOG("%s. len=%d\n", name, len);
+		pr_info("%s. len=%d\n", name, len);
 		ret = of_property_read_u32_array(np, name, tmp, len);
 		if (ret) {
-			NVT_ERR("error reading %s. ret=%d\n", name, ret);
+			pr_err("error reading %s. ret=%d\n", name, ret);
 			return;
 		}
 
@@ -1832,10 +1832,10 @@ void nvt_mp_parse_u32(struct device_node *np, const char *name, int32_t *para)
 
 	ret = of_property_read_u32(np, name, para);
 	if (ret)
-		NVT_ERR("error reading %s. ret=%d\n", name, ret);
+		pr_err("error reading %s. ret=%d\n", name, ret);
 	else {
 #if NVT_DEBUG
-		NVT_LOG("%s=%d\n", name, *para);
+		pr_info("%s=%d\n", name, *para);
 #endif
 	}
 }
@@ -1859,17 +1859,17 @@ void nvt_mp_parse_array(struct device_node *np, const char *name, int32_t *array
 	data = of_find_property(np, name, &len);
 	len /= sizeof(u32);
 	if ((!data) || (!len) || (len < size)) {
-		NVT_ERR("error find %s. len=%d\n", name, len);
+		pr_err("error find %s. len=%d\n", name, len);
 	} else {
-		NVT_LOG("%s. len=%d\n", name, len);
+		pr_info("%s. len=%d\n", name, len);
 		ret = of_property_read_u32_array(np, name, array, len);
 		if (ret) {
-			NVT_ERR("error reading %s. ret=%d\n", name, ret);
+			pr_err("error reading %s. ret=%d\n", name, ret);
 			return;
 		}
 
 #if NVT_DEBUG
-		NVT_LOG("%s =\n", name);
+		pr_info("%s =\n", name);
 		for (j = 0; j < Y_Channel; j++) {
 			printk("[NVT-ts] ");
 			for (i = 0; i < X_Channel; i++) {
@@ -1901,13 +1901,13 @@ void nvt_mp_parse_dt(struct device_node *root, const char *node_compatible)
 	struct device_node *np = root;
 	struct device_node *child = NULL;
 
-	NVT_LOG("Parse mp criteria for node %s\n", node_compatible);
+	pr_info("Parse mp criteria for node %s\n", node_compatible);
 
 	/* find each MP sub-nodes */
 	for_each_child_of_node(root, child) {
 		/* find the specified node */
 		if (of_device_is_compatible(child, node_compatible)) {
-			NVT_LOG("found child node %s\n", node_compatible);
+			pr_info("found child node %s\n", node_compatible);
 			np = child;
 			break;
 		}
@@ -2001,7 +2001,7 @@ void nvt_mp_parse_dt(struct device_node *root, const char *node_compatible)
 
 	nvt_mp_parse_u32(np, "PS_Config_Lmt_FW_Diff_N", &PS_Config_Lmt_FW_Diff_N);
 
-	NVT_LOG("Parse mp criteria done!\n");
+	pr_info("Parse mp criteria done!\n");
 }
 #endif
 
@@ -2020,11 +2020,11 @@ int32_t nvt_mp_proc_init(void)
 
 	NVT_proc_selftest_entry = proc_create("nvt_selftest", 0444, NULL, &nvt_selftest_fops);
 	if (NVT_proc_selftest_entry == NULL) {
-		NVT_ERR("create /proc/nvt_selftest Failed!\n");
+		pr_err("create /proc/nvt_selftest Failed!\n");
 		return -1;
 	} else {
 		if(nvt_mp_buffer_init()) {
-			NVT_ERR("Allocate mp memory failed\n");
+			pr_err("Allocate mp memory failed\n");
 			return -1;
 		}
 		else {
@@ -2043,10 +2043,10 @@ int32_t nvt_mp_proc_init(void)
 
 				nvt_mp_parse_dt(np, mpcriteria);
 			} else {
-				NVT_LOG("Not found novatek,mp-support-dt, use default setting\n");
+				pr_info("Not found novatek,mp-support-dt, use default setting\n");
 			}
 #endif
-			NVT_LOG("create /proc/nvt_selftest Succeeded!\n");
+			pr_info("create /proc/nvt_selftest Succeeded!\n");
 		}
 		return 0;
 	}
