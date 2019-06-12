@@ -436,7 +436,7 @@ static int32_t nvt_polling_hand_shake_status(void)
 		if ((buf[1] == 0xA0) || (buf[1] == 0xA1))
 			break;
 
-		msleep(10);
+		usleep_range(10000, 11000);
 	}
 
 	if (i >= retry) {

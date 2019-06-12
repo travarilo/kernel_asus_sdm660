@@ -169,7 +169,7 @@ int32_t Resume_PD(void)
 	// Check 0xAA (Resume Command)
 	retry = 0;
 	while(1) {
-		msleep(1);
+		usleep_range(1000, 1100);
 		buf[0] = 0x00;
 		buf[1] = 0x00;
 		ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -186,7 +186,7 @@ int32_t Resume_PD(void)
 			return -1;
 		}
 	}
-	msleep(10);
+	usleep_range(10000, 11000);
 
 	NVT_LOG("Resume PD OK\n");
 	return 0;
@@ -325,7 +325,7 @@ int32_t Init_BootLoader(void)
 	// Check 0xAA (Initiate Flash Block)
 	retry = 0;
 	while(1) {
-		msleep(1);
+		usleep_range(1000, 1100);
 		buf[0] = 0x00;
 		buf[1] = 0x00;
 		ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -376,7 +376,7 @@ int32_t Erase_Flash(void)
 	// Check 0xAA (Write Enable)
 	retry = 0;
 	while (1) {
-		mdelay(1);
+		usleep_range(1000, 1100);
 		buf[0] = 0x00;
 		buf[1] = 0x00;
 		ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -406,7 +406,7 @@ int32_t Erase_Flash(void)
 	// Check 0xAA (Write Status Register)
 	retry = 0;
 	while (1) {
-		mdelay(1);
+		usleep_range(1000, 1100);
 		buf[0] = 0x00;
 		buf[1] = 0x00;
 		ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -427,7 +427,7 @@ int32_t Erase_Flash(void)
 	// Read Status
 	retry = 0;
 	while (1) {
-		mdelay(5);
+		usleep_range(5000, 5100);
 		buf[0] = 0x00;
 		buf[1] = 0x05;
 		ret = CTP_I2C_WRITE(ts->client, I2C_HW_Address, buf, 2);
@@ -472,7 +472,7 @@ int32_t Erase_Flash(void)
 		// Check 0xAA (Write Enable)
 		retry = 0;
 		while (1) {
-			mdelay(1);
+			usleep_range(1000, 1100);
 			buf[0] = 0x00;
 			buf[1] = 0x00;
 			ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -506,7 +506,7 @@ int32_t Erase_Flash(void)
 		// Check 0xAA (Sector Erase)
 		retry = 0;
 		while (1) {
-			mdelay(1);
+			usleep_range(1000, 1100);
 			buf[0] = 0x00;
 			buf[1] = 0x00;
 			ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -527,7 +527,7 @@ int32_t Erase_Flash(void)
 		// Read Status
 		retry = 0;
 		while (1) {
-			mdelay(5);
+			usleep_range(5000, 5100);
 			buf[0] = 0x00;
 			buf[1] = 0x05;
 			ret = CTP_I2C_WRITE(ts->client, I2C_HW_Address, buf, 2);
@@ -607,7 +607,7 @@ int32_t Write_Flash(void)
 		// Check 0xAA (Write Enable)
 		retry = 0;
 		while (1) {
-			udelay(100);
+			usleep_range(100, 110);
 			buf[0] = 0x00;
 			buf[1] = 0x00;
 			ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -664,7 +664,7 @@ int32_t Write_Flash(void)
 		// Check 0xAA (Page Program)
 		retry = 0;
 		while (1) {
-			mdelay(1);
+			usleep_range(1000, 1100);
 			buf[0] = 0x00;
 			buf[1] = 0x00;
 			ret = CTP_I2C_READ(ts->client, I2C_HW_Address, buf, 2);
@@ -689,7 +689,7 @@ int32_t Write_Flash(void)
 		// Read Status
 		retry = 0;
 		while (1) {
-			mdelay(5);
+			usleep_range(5000, 5100);
 			buf[0] = 0x00;
 			buf[1] = 0x05;
 			ret = CTP_I2C_WRITE(ts->client, I2C_HW_Address, buf, 2);
@@ -910,7 +910,7 @@ int32_t nvt_read_flash_end_flag(void)
 		NVT_ERR("write unlock error!!(%d)\n", ret);
 		return ret;
 	}
-	msleep(10);
+	usleep_range(10000, 11000);
 
 	//Step 4 : Flash Read Command
 	buf[0] = 0x00;
@@ -925,7 +925,7 @@ int32_t nvt_read_flash_end_flag(void)
 		NVT_ERR("write Read Command error!!(%d)\n", ret);
 		return ret;
 	}
-	msleep(10);
+	usleep_range(10000, 11000);
 
 	// Check 0xAA (Read Command)
 	buf[0] = 0x00;
@@ -940,7 +940,7 @@ int32_t nvt_read_flash_end_flag(void)
 		return -1;
 	}
 
-	msleep(10);
+	usleep_range(10000, 11000);
 
 	//Step 5 : Read Flash Data
 	buf[0] = 0xFF;
@@ -951,7 +951,7 @@ int32_t nvt_read_flash_end_flag(void)
 		NVT_ERR("change index error!! (%d)\n", ret);
 		return ret;
 	}
-	msleep(10);
+	usleep_range(10000, 11000);
 
 	// Read Back
 	buf[0] = 0x00;
