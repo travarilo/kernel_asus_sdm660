@@ -61,7 +61,7 @@ static struct wake_lock early_unblank_wakelock;
 extern bool lcd_suspend_flag;
 
 #ifdef CONFIG_KLAPSE
-#include "klapse.h"
+#include <linux/klapse.h>
 #endif
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
