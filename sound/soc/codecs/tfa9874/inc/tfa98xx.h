@@ -75,7 +75,6 @@ struct tfa98xx {
 	struct i2c_client *i2c;
 	struct regulator *vdd;
 	struct snd_soc_codec *codec;
-	struct workqueue_struct *tfa98xx_wq;
 	struct delayed_work init_work;
 	struct delayed_work monitor_work;
 	struct delayed_work interrupt_work;
