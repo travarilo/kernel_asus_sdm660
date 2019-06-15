@@ -446,11 +446,11 @@ static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 */
 	/* Huaqin modify for cdfinger irq wake by leiyu at 2018/04/10 start */
 	int error = 0;
+	int irqf;
 	/* Huaqin modify for cpu_boost by leiyu at 2018/04/25 start */
 	//error = commonfp_request_irq(NULL,cdfinger_eint_handler, IRQF_TRIGGER_RISING|IRQF_ONESHOT,"cdfinger_eint", (void*)pdata);
-	error = commonfp_request_irq(cdfinger_eint_handler, NULL,
-				     IRQF_TRIGGER_RISING, "cdfinger_eint",
-				     (void *)pdata);
+	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL;
+	error = commonfp_request_irq(cdfinger_eint_handler,NULL, irqf, "cdfinger_eint", (void*)pdata);
 	/* Huaqin modify for cpu_boost by leiyu at 2018/04/25 end */
 	if (error < 0) {
 		CDFINGER_ERR("commonfp_request_irq error %d\n", error);
