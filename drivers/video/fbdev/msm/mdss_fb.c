@@ -90,7 +90,6 @@ extern bool lcd_suspend_flag;
 
 #ifdef CONFIG_MACH_ASUS_X00T
 static void asus_lcd_early_unblank_func(struct work_struct *);
-static struct workqueue_struct *asus_lcd_early_unblank_wq;
 extern int g_resume_from_fp;
 #endif
 
@@ -1722,7 +1721,7 @@ static int mdss_fb_pm_resume(struct device *dev)
 		if (!mfd->early_unblank_work_queued) {
 			printk("[Display] doing unblank from resume, due to fp.\n");
 			mfd->early_unblank_work_queued = true;
-			queue_delayed_work(asus_lcd_early_unblank_wq, &mfd->early_unblank_work, 0);
+			queue_delayed_work(system_power_efficient_wq, &mfd->early_unblank_work, 0);
 		} else {
 			printk("[Display] mfd->early_unblank_work_queued returns true.\n");
 		}
@@ -5291,7 +5290,6 @@ int __init mdss_fb_init(void)
 		return rc;
 
 #ifdef CONFIG_MACH_ASUS_X00T
-	asus_lcd_early_unblank_wq = create_singlethread_workqueue("display_early_wq");
 	wake_lock_init(&early_unblank_wakelock, WAKE_LOCK_SUSPEND, "early_unblank-update");
 #endif
 	return 0;
