@@ -44,9 +44,6 @@
 #include <linux/wakelock.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 start
-#include <linux/kthread.h>
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 end
 
 #if defined(CONFIG_FB)
 #include <linux/notifier.h>
@@ -2026,14 +2023,6 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 	return 0;
 }
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 start
-int fb_nvt_ts_resume(void *data)
-{
-	nvt_ts_resume(data);
-
-	return 0;
-}
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 end
 #if defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
 {
@@ -2042,17 +2031,13 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
 	struct nvt_ts_data *ts =
 		container_of(self, struct nvt_ts_data, fb_notif);
 
-	if (evdata && evdata->data && event == FB_EARLY_EVENT_BLANK) {
+	if (evdata && evdata->data) {
 		blank = evdata->data;
-		if (*blank == FB_BLANK_POWERDOWN) {
+		if (event == FB_EARLY_EVENT_BLANK && *blank == FB_BLANK_POWERDOWN)
 			nvt_ts_suspend(&ts->client->dev);
 		}
-	} else if (evdata && evdata->data && event == FB_EVENT_BLANK) {
-		blank = evdata->data;
-		if (*blank == FB_BLANK_UNBLANK) {
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 start
-			kthread_run(fb_nvt_ts_resume,&ts->client->dev,"tp_resume");
-//Huaqin add for Reduce the bright screen time by qimaokang at 2018/4/20 end
+		else if (event == FB_EVENT_BLANK && *blank == FB_BLANK_UNBLANK)
+			nvt_ts_resume(&ts->client->dev);
 		}
 	}
 
