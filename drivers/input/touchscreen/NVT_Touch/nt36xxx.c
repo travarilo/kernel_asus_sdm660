@@ -55,6 +55,7 @@
 #include <linux/earlysuspend.h>
 #endif
 
+#include <linux/workqueue.h>
 #include "nt36xxx.h"
 /* Huaqin add by yuexinghan for ITO test start */
 //#include "../../../video/msm/mdss/mdss_dsi.h"
@@ -1612,7 +1613,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	mutex_unlock(&ts->lock);
 
 	//---create workqueue---
-	nvt_wq = create_workqueue("nvt_wq");
+	nvt_wq = alloc_workqueue("nvt_wq", WQ_HIGHPRI, 0);
 	if (!nvt_wq) {
 		NVT_ERR("nvt_wq create workqueue failed\n");
 		ret = -ENOMEM;
