@@ -4414,7 +4414,7 @@ static int mdss_dp_probe(struct platform_device *pdev)
 	init_completion(&dp_drv->idle_comp);
 	init_completion(&dp_drv->video_comp);
 
-#ifndef CONFIG_MACH_ASUS_X00T
+#ifndef CONFIG_MACH_ASUS_X00TD
 	if (mdss_dp_usbpd_setup(dp_drv)) {
 		pr_err("Error usbpd setup!\n");
 		devm_kfree(&pdev->dev, dp_drv);
