@@ -3613,45 +3613,6 @@ void asus_update_usb_connector_state(struct smb_charger *chip)
 		pr_err("%s: NONE gpio12_vadc_dev\n", __func__);
 		return;
 	}
-
-	if (phy_volta < CHG_ALERT_HOT_NTC_VOLTAFE) {
-		if (!usb_otg_present) {
-			switch_set_state(&usb_alert_dev, THM_ALERT_WITH_AC);
-			smblib_set_usb_suspend(chip, 1);
-		} else
-			switch_set_state(&usb_alert_dev, THM_ALERT_NO_AC);
-
-		usb_alert_usb_otg_disable = true;
-		need_replugin_usb = false;
-		rc = smblib_masked_write(chip, CMD_OTG_REG, OTG_EN_BIT, 0);
-		switch_set_state(&usb_otg_dev, 0);
-		if (rc < 0)
-			dev_err(chip->dev, "Couldn't set CMD_OTG_REG rc=%d\n",
-				rc);
-		pr_info("%s:USB connector hot, suspend charger and otg\n",
-			__func__);
-
-	} else if ((phy_volta >= CHG_ALERT_HOT_NTC_VOLTAFE) &&
-		   (phy_volta <= CHG_ALERT_WARM_NTC_VOLTAGE)) {
-		if (usb_alert_usb_otg_disable == true)
-			pr_err("%s:USB alert former state is hot, now is warm\n",
-			       __func__);
-		else
-			pr_info("%s:USB alert former state is GOOD, now is warm",
-				__func__);
-
-	} else if ((phy_volta > CHG_ALERT_WARM_NTC_VOLTAGE) &&
-		   need_replugin_usb) {
-		switch_set_state(&usb_alert_dev, THM_ALERT_NONE);
-		usb_alert_usb_otg_disable = false;
-		need_replugin_usb = false;
-		rc = smblib_set_usb_suspend(chip, 0);
-		if (rc < 0)
-			dev_err(chip->dev, "Couldn't set CMD_OTG_REG rc=%d\n",
-				rc);
-		pr_info("%s:USB connector temp is GOOD, recover charge\n",
-			__func__);
-	}
 }
 
 void jeita_rule(void)
