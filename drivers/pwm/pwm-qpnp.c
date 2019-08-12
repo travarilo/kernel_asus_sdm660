@@ -1508,12 +1508,12 @@ int pwm_change_mode(struct pwm_device *pwm, enum pm_pwm_mode mode)
 			goto unlock;
 		}
 		chip->pwm_mode = mode;
-		if (chip->enabled) {
-			rc = _pwm_enable(chip);
-			if (rc) {
-				pr_err("Failed to enable PWM, rc=%d\n", rc);
-				goto unlock;
-			}
+	}
+	if (chip->enabled) {
+		rc = _pwm_enable(chip);
+		if (rc) {
+			pr_err("Failed to enable PWM, rc=%d\n", rc);
+			goto unlock;
 		}
 	}
 unlock:
