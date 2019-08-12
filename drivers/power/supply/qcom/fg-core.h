@@ -32,6 +32,23 @@
 #include <linux/uaccess.h>
 #include <linux/pmic-voter.h>
 
+#define BAT_HEALTH_NUMBER_MAX 21
+struct BAT_HEALTH_DATA {
+	int magic;
+	int bat_current;
+	unsigned long long bat_current_avg;
+	unsigned long long accumulate_time; //second
+	unsigned long long accumulate_current; //uA
+	int bat_health;
+	unsigned long start_time;
+	unsigned long end_time;
+};
+
+struct BAT_HEALTH_DATA_BACKUP {
+	char date[20];
+	int health;
+};
+
 #define fg_dbg(chip, reason, fmt, ...)			\
 	do {							\
 		if (*chip->debug_mask & (reason))		\
