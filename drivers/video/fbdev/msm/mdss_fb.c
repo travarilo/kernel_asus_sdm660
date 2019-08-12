@@ -46,6 +46,7 @@
 #include <linux/file.h>
 #include <linux/kthread.h>
 #include <linux/dma-buf.h>
+#include <linux/wakelock.h>
 #include <sync.h>
 #include <sw_sync.h>
 
@@ -55,6 +56,9 @@
 #include "mdss_debug.h"
 #include "mdss_smmu.h"
 #include "mdss_mdp.h"
+
+static struct wake_lock early_unblank_wakelock;
+extern bool lcd_suspend_flag;
 
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MDSS_FB_NUM 3
@@ -82,6 +86,9 @@
  */
 #define MDP_TIME_PERIOD_CALC_FPS_US	1000000
 
+static void asus_lcd_early_unblank_func(struct work_struct *);
+static struct workqueue_struct *asus_lcd_early_unblank_wq;
+
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
 
@@ -103,6 +110,7 @@ static int mdss_fb_pan_display(struct fb_var_screeninfo *var,
 static int mdss_fb_check_var(struct fb_var_screeninfo *var,
 			     struct fb_info *info);
 static int mdss_fb_set_par(struct fb_info *info);
+static int mdss_fb_blank(int blank_mode, struct fb_info *info);
 static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 			     int op_enable);
 static int mdss_fb_suspend_sub(struct msm_fb_data_type *mfd);
@@ -1396,6 +1404,9 @@ static int mdss_fb_probe(struct platform_device *pdev)
 			pr_err("failed to register input handler\n");
 
 	INIT_DELAYED_WORK(&mfd->idle_notify_work, __mdss_fb_idle_notify_work);
+	INIT_DELAYED_WORK(&mfd->early_unblank_work,
+			  asus_lcd_early_unblank_func);
+	mfd->early_unblank_work_queued = false;
 
 	return rc;
 }
@@ -1606,14 +1617,50 @@ static int mdss_fb_resume(struct platform_device *pdev)
 #endif
 
 #ifdef CONFIG_PM_SLEEP
+static void asus_lcd_early_unblank_func(struct work_struct *work)
+{
+	struct delayed_work *dw = to_delayed_work(work);
+	struct msm_fb_data_type *mfd = container_of(dw, struct msm_fb_data_type,
+			early_unblank_work);
+	struct fb_info *fbi;
+
+	if (!mfd) {
+		pr_err("[Display] cannot get mfd from work\n");
+		return;
+	}
+
+	fbi = mfd->fbi;
+	if (!fbi)
+		return;
+
+	wake_lock_timeout(&early_unblank_wakelock, msecs_to_jiffies(300));
+	fb_blank(fbi, FB_BLANK_UNBLANK);
+	lcd_suspend_flag = false;
+
+	mfd->early_unblank_work_queued = false;
+}
+
 static int mdss_fb_pm_suspend(struct device *dev)
 {
 	struct msm_fb_data_type *mfd = dev_get_drvdata(dev);
 	int rc = 0;
+	struct fb_info *fbi;
 
 	if (!mfd)
 		return -ENODEV;
 
+	fbi = mfd->fbi;
+	if (!fbi)
+		return -ENODEV;
+
+	if (mfd->index == 0) {
+		if (lcd_suspend_flag == false) {
+			pr_debug("%s: display suspend, blank display\n",
+				 __func__);
+			fb_blank(fbi, FB_BLANK_POWERDOWN);
+			lcd_suspend_flag = true;
+		}
+	}
 	dev_dbg(dev, "display pm suspend\n");
 
 	rc = mdss_fb_suspend_sub(mfd);
@@ -1638,6 +1685,7 @@ static int mdss_fb_pm_suspend(struct device *dev)
 static int mdss_fb_pm_resume(struct device *dev)
 {
 	struct msm_fb_data_type *mfd = dev_get_drvdata(dev);
+	int rc = 0;
 	if (!mfd)
 		return -ENODEV;
 
@@ -1655,7 +1703,22 @@ static int mdss_fb_pm_resume(struct device *dev)
 	if (mfd->mdp.footswitch_ctrl)
 		mfd->mdp.footswitch_ctrl(true);
 
-	return mdss_fb_resume_sub(mfd);
+	rc = mdss_fb_resume_sub(mfd);
+
+	if (mfd->index == 0) {
+		if (!mfd->early_unblank_work_queued) {
+			pr_debug("%s: doing unblank from resume, due to fp\n",
+				 __func__);
+			mfd->early_unblank_work_queued = true;
+			queue_delayed_work(asus_lcd_early_unblank_wq,
+					   &mfd->early_unblank_work, 0);
+		} else {
+			pr_debug("%s: mfd->early_unblank_work_queued returns true\n",
+				 __func__);
+		}
+	}
+
+	return rc;
 }
 #endif
 
@@ -4688,7 +4751,9 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 			mfd->mdp.signal_retire_fence && mdp5_data)
 			mfd->mdp.signal_retire_fence(mfd,
 						mdp5_data->retire_cnt);
+#ifndef CONFIG_MACH_ASUS_X00T
 		return 0;
+#endif
 	}
 
 	output_layer_user = commit.commit_v1.output_layer;
@@ -5219,6 +5284,11 @@ int __init mdss_fb_init(void)
 
 	if (platform_driver_register(&mdss_fb_driver))
 		return rc;
+
+	asus_lcd_early_unblank_wq =
+		create_singlethread_workqueue("display_early_wq");
+	wake_lock_init(&early_unblank_wakelock,
+		       WAKE_LOCK_SUSPEND, "early_unblank-update");
 
 	return 0;
 }
