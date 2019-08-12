@@ -67,9 +67,19 @@ enum wcd_mbhc_cs_mb_en_flag {
 	WCD_MBHC_EN_NONE,
 };
 
+static int hph_state;
+static bool wcd_swch_level_remove(struct wcd_mbhc *mbhc);
+
 static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 				struct snd_soc_jack *jack, int status, int mask)
 {
+	pr_info("%s:%x,%x", __func__, status, mask);
+	if ((status == 0x9 && mask == 0x3cf) ||
+	    (status == 0xb && mask == 0x3cf))
+		hph_state = 1;
+	else
+		hph_state = 0;
+
 	snd_soc_jack_report(jack, status, mask);
 }
 
@@ -357,7 +367,7 @@ out_micb_en:
 		if (micbias2)
 			/* Disable cs, pullup & enable micbias */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB);
-		else
+		else if (!wcd_swch_level_remove(mbhc))
 			/* Disable micbias, pullup & enable cs */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
 		mutex_unlock(&mbhc->hphl_pa_lock);
@@ -375,7 +385,7 @@ out_micb_en:
 		if (micbias2)
 			/* Disable cs, pullup & enable micbias */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB);
-		else
+		else if (!wcd_swch_level_remove(mbhc))
 			/* Disable micbias, pullup & enable cs */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
 		mutex_unlock(&mbhc->hphr_pa_lock);
@@ -387,7 +397,7 @@ out_micb_en:
 		if (micbias2)
 			/* Disable cs, pullup & enable micbias */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB);
-		else
+		else if (!wcd_swch_level_remove(mbhc))
 			/* Disable micbias, enable pullup & cs */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_PULLUP);
 		break;
@@ -397,7 +407,7 @@ out_micb_en:
 		if (micbias2)
 			/* Disable cs, pullup & enable micbias */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB);
-		else
+		else if (!wcd_swch_level_remove(mbhc))
 			/* Disable micbias, enable pullup & cs */
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_PULLUP);
 		break;
@@ -887,7 +897,7 @@ static void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 						SND_JACK_HEADPHONE);
 			if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET)
 				wcd_mbhc_report_plug(mbhc, 0, SND_JACK_HEADSET);
-		wcd_mbhc_report_plug(mbhc, 1, SND_JACK_UNSUPPORTED);
+		wcd_mbhc_report_plug(mbhc, 1, SND_JACK_HEADSET);
 	} else if (plug_type == MBHC_PLUG_TYPE_HEADSET) {
 		if (mbhc->mbhc_cfg->enable_anc_mic_detect)
 			anc_mic_found = wcd_mbhc_detect_anc_plug_type(mbhc);
@@ -1136,7 +1146,7 @@ static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
 		} else if (plug_type == MBHC_PLUG_TYPE_HEADPHONE) {
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
 		} else {
-			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_NONE);
+			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB);
 		}
 	}
 }
@@ -1567,6 +1577,9 @@ static void wcd_mbhc_detect_plug_type(struct wcd_mbhc *mbhc)
 	pr_debug("%s: leave\n", __func__);
 }
 
+int hph_ext_en_gpio = -1;
+int hph_ext_sw_gpio = -1;
+
 static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 {
 	bool detection_type = 0;
@@ -1584,6 +1597,24 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 		pr_debug("%s: button press is canceled\n", __func__);
 
 	WCD_MBHC_REG_READ(WCD_MBHC_MECH_DETECTION_TYPE, detection_type);
+
+#if 0
+	pr_err("%s: %s external headphone switch\n", __func__,
+	       detection_type ? "Enable" : "Disable");
+
+	if (!gpio_is_valid(hph_ext_en_gpio) ||
+	    !gpio_is_valid(hph_ext_sw_gpio))
+		pr_err("%s: Invalid gpio: %d,%d\n", __func__,
+		       hph_ext_en_gpio, hph_ext_sw_gpio);
+
+	if (detection_type) {
+		gpio_direction_output(hph_ext_en_gpio, 1);
+		gpio_direction_output(hph_ext_sw_gpio, 1);
+	} else {
+		gpio_direction_output(hph_ext_sw_gpio, 0);
+		gpio_direction_output(hph_ext_en_gpio, 0);
+	}
+#endif
 
 	/* Set the detection type appropriately */
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_MECH_DETECTION_TYPE,
@@ -1961,8 +1992,8 @@ static void wcd_btn_lpress_fn(struct work_struct *work)
 
 	WCD_MBHC_REG_READ(WCD_MBHC_BTN_RESULT, btn_result);
 	if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET) {
-		pr_debug("%s: Reporting long button press event, btn_result: %d\n",
-			 __func__, btn_result);
+		pr_debug("%s: Reporting long button press event, btn_result: %d %x\n",
+			 __func__, btn_result, mbhc->buttons_pressed);
 		wcd_mbhc_jack_report(mbhc, &mbhc->button_jack,
 				mbhc->buttons_pressed, mbhc->buttons_pressed);
 	}
@@ -2768,6 +2799,17 @@ void wcd_mbhc_stop(struct wcd_mbhc *mbhc)
 }
 EXPORT_SYMBOL(wcd_mbhc_stop);
 
+static ssize_t show_hp_state(struct device *dev,
+			     struct device_attribute *attr,
+			     char *buf)
+{
+	int ret = 0;
+
+	ret = snprintf(buf, sizeof(int), "%d\n", hph_state);
+	return ret;
+}
+static DEVICE_ATTR(hp_state, 0444, show_hp_state, NULL);
+
 /*
  * wcd_mbhc_init : initialize MBHC internal structures.
  *
@@ -2780,6 +2822,7 @@ int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_codec *codec,
 		      bool impedance_det_en)
 {
 	int ret = 0;
+	int ret_hp = 0;
 	int hph_swh = 0;
 	int gnd_swh = 0;
 	u32 hph_moist_config[3];
@@ -2980,6 +3023,8 @@ int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_codec *codec,
 		       mbhc->intr_ids->hph_right_ocp);
 		goto err_hphr_ocp_irq;
 	}
+
+	ret_hp = sysfs_create_file(&card->dev->kobj, &dev_attr_hp_state.attr);
 
 	pr_debug("%s: leave ret %d\n", __func__, ret);
 	return ret;
