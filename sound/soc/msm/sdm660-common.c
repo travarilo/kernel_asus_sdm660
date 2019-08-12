@@ -33,6 +33,10 @@
 #define DEFAULT_MCLK_RATE 9600000
 #define MSM_LL_QOS_VALUE 300 /* time in us to ensure LPM doesn't go in C3/C4 */
 
+#ifdef CONFIG_INPUT_SX9310
+extern void sar_switch(bool);
+#endif
+
 struct dev_config {
 	u32 sample_rate;
 	u32 bit_format;
@@ -2578,6 +2582,10 @@ int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 			}
 		}
 		if (index == TERT_MI2S) {
+#ifdef CONFIG_INPUT_SX9310
+			pr_debug("%s before open PA, close SAR!\n", __func__);
+			sar_switch(0);
+#endif
 			msm_cdc_pinctrl_select_active_state(pdata->tert_mi2s_gpio_p);
 			pr_info("%s: tert_mi2s_gpio_p\n", __func__);
 		}
@@ -2622,6 +2630,10 @@ void msm_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 		if (index == TERT_MI2S) {
 			msm_cdc_pinctrl_select_sleep_state(pdata->tert_mi2s_gpio_p);
 			pr_info("%s: tert_mi2s_gpio_p\n", __func__);
+#ifdef CONFIG_INPUT_SX9310
+			pr_debug("%s after close PA, open SAR!\n", __func__);
+			sar_switch(1);
+#endif
 		}
 		ret = msm_mi2s_set_sclk(substream, false);
 		if (ret < 0)

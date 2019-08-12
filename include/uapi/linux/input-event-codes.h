@@ -653,6 +653,10 @@
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
+/* SAR Sensors */
+#define KEY_SARSENSOR_NEAR		0x2ea
+#define KEY_SARSENSOR_FAR		0x2eb
+
 /* Touch gesture */
 #define KEY_TP_GESTURE_W		0x2ec
 #define KEY_TP_GESTURE_E		0x2ed
