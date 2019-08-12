@@ -88,6 +88,7 @@ extern bool lcd_suspend_flag;
 
 static void asus_lcd_early_unblank_func(struct work_struct *);
 static struct workqueue_struct *asus_lcd_early_unblank_wq;
+extern int g_resume_from_fp;
 
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
@@ -1705,7 +1706,7 @@ static int mdss_fb_pm_resume(struct device *dev)
 
 	rc = mdss_fb_resume_sub(mfd);
 
-	if (mfd->index == 0) {
+	if (g_resume_from_fp && mfd->index == 0) {
 		if (!mfd->early_unblank_work_queued) {
 			pr_debug("%s: doing unblank from resume, due to fp\n",
 				 __func__);
