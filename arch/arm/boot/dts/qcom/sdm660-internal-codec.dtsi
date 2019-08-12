@@ -77,7 +77,12 @@
 &pmic_analog_codec {
 	status = "okay";
 };
-
+/* Huaqin add for ZQL1650-155 by xudayi at 2018/02/02 start */
 &msm_sdw_codec {
-	status = "okay";
+	status = "disabled";
 };
+
+&cdc_sdw_gpios {
+	status = "disabled";
+};
+/* Huaqin add for ZQL1650-155 by xudayi at 2018/02/02 end */

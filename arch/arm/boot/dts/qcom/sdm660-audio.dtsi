@@ -265,8 +265,20 @@
 			};
 		};
 	};
+	/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 start */
+	tert_mi2s_gpios: tert_mi2s_pinctrl {
+		compatible = "qcom,msm-cdc-pinctrl";
+		pinctrl-names = "aud_active", "aud_sleep";
+		pinctrl-0 = <&ter_mi2s_clk_active &ter_mi2s_ws_active
+			&ter_mi2s_sd0_active &ter_mi2s_sd1_active>;
+		pinctrl-1 = <&ter_mi2s_clk_sleep &ter_mi2s_ws_sleep
+			&ter_mi2s_sd0_sleep &ter_mi2s_sd1_sleep>;
+		qcom,lpi-gpios;
+	};
+	/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 end */
 };
-
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+/*
 &pm660_gpios {
 	gpio@c200 {
 		status = "ok";
@@ -278,3 +290,5 @@
 		qcom,out-strength = <2>;
 	};
 };
+*/
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */

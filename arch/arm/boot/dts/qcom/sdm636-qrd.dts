@@ -15,11 +15,25 @@
 
 #include "sdm636.dtsi"
 #include "sdm636-qrd.dtsi"
-
+#include "dsi-panel-auo-ft8716f-5p9-fhd-video.dtsi"
+/* Huaqin add for ZQL1650-158 by xudayi at 2018/01/22 start */
+#include "sdm660-internal-codec.dtsi"
+/* Huaqin add for ZQL1650-158 by xudayi at 2018/01/22 end */
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 start */
+#include "dsi-panel-nt36672-1080p-video-txd.dtsi"
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 end */
+/* Huaqin modify for lcm bring up by xieguoqiang at 2018/02/26 start */
+#include "dsi-panel-nt36672-1080p-video.dtsi"
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/02/26 end */
+/* Huaqin modify for ZQL1650-1356 by qimaokang at 2018/05/22 start */
+#include "dsi-panel-td4310-1080p-video-txd.dtsi"
+/* Huaqin modify for ZQL1650-1356 by qimaokang at 2018/05/22 end */
 / {
 	model = "Qualcomm Technologies, Inc. SDM 636 PM660 + PM660L QRD";
 	compatible = "qcom,sdm636-qrd", "qcom,sdm636", "qcom,qrd";
+/* Huaqin modify for ZQL1650-136 by xuefeng at 2018/01/20 start */
 	qcom,board-id = <0x1000b 0>;
+/* Huaqin modify for ZQL1650-136 by xuefeng at 2018/01/20 end */
 	qcom,pmic-id = <0x0001001b 0x0101011a 0x0 0x0>,
 			<0x0001001b 0x0201011a 0x0 0x0>,
 			<0x0001001b 0x0102001a 0x0 0x0>;
@@ -30,15 +44,24 @@
 };
 
 &mdss_fb0 {
-	qcom,mdss-mixer-swap;
 };
 
 &mdss_dsi {
-	hw-config = "split_dsi";
+	 hw-config = "single_dsi";
+	qcom,mdss-fb-map-prim = <&mdss_fb0>;
+	qcom,mdss-fb-map-sec = <&mdss_fb2>;
+};
+
+&dsi_panel_pwr_supply {
+	qcom,panel-supply-entry@0 {
+	qcom,supply-pre-off-sleep = <2>;
+	};
 };
 
 &mdss_dsi0 {
-	qcom,dsi-pref-prim-pan = <&dsi_dual_nt36850_truly_cmd>;
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 start */
+	qcom,dsi-pref-prim-pan = <&dsi_nt36672_1080p_video_txd>;
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 end */
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
@@ -47,7 +70,10 @@
 };
 
 &mdss_dsi1 {
-	qcom,dsi-pref-prim-pan = <&dsi_dual_nt36850_truly_cmd>;
+	status = "disabled";
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 start */
+	qcom,dsi-pref-prim-pan = <&dsi_nt36672_1080p_video_txd>;
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 end */
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
@@ -65,7 +91,21 @@
 &pm660l_wled {
 	qcom,led-strings-list = [00 01];
 };
-
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 start */
+&dsi_nt36672_1080p_video_txd {
+  qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+/* Huaqin modify for ZQL1650-140 by xieguoqiang at 2018/01/23 end */
+/* Huaqin modify for lcm bring up by xieguoqiang at 2018/02/26 start */
+&dsi_nt36672_1080p_video {
+  qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+/* Huaqin modify for lcm bring up by xieguoqiang at 2018/02/26 end */
+/* Huaqin modify for ZQL1650-1356 by qimaokang at 2018/05/22 start */
+&dsi_td4310_1080p_video_txd {
+	  qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+/* Huaqin modify for ZQL1650-1356 by qimaokang at 2018/05/22 end */
 &soc {
 	hbtp {
 		compatible = "qcom,hbtp-input";
@@ -85,4 +125,125 @@
 		qcom,afe-power-on-delay-us = <1000>;
 		qcom,afe-power-off-delay-us = <6>;
 	};
+
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 start */
+	common_fp {
+		compatible = "common,fingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <72 0x0>;
+
+		common,gpio_reset   = <&tlmm 20 0>;
+		common,gpio_irq		= <&tlmm 72 0>;
+		common,gpio_vdd		= <&pm660l_gpios 5 0>;
+		pinctrl-names		=	"commonfp_reset_reset",
+								"commonfp_reset_active",
+								"commonfp_irq_active";
+		pinctrl-0 = <&commonfp_reset_reset>;
+		pinctrl-1 = <&commonfp_reset_active>;
+		pinctrl-2 = <&commonfp_irq_active>;
+	};
+
+	cdfinger_fingerprint {
+		compatible = "cdfinger,fingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <72 0x0>;
+		cdfinger,reset_gpio = <&tlmm 20 0>;
+		cdfinger,gpio_vdd  = <&pm660l_gpios 5 0>;
+		cdfinger,irq_gpio = <&tlmm 72 0>;
+	};
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 end */
+
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/02/09 start */
+	goodix_fingerprint {
+		compatible = "goodix,fingerprint";
+	};
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/02/09 end */
+
 };
+
+/*Huaqin add sar sensors sx9310 by chenyijun5 at 2018/02/07 start*/
+/*add for SAR SENSOR*/
+&i2c_2 {/* BLSP2 */
+	status = "okay";
+	semtech@28{             /*sar sensor*/
+		compatible = "Semtech,sx9310";
+		reg = <0x28>;
+		vdd-supply  =<&pm660l_l3>;
+		vdd1-supply =<&pm660_l13>;  // for svdd
+		interrupt-parent = <&tlmm>;
+		Semtech,gpio-irq= <&tlmm 77 0x2008>; // gpio 77
+		interrupts = <77 0x2>;
+		pinctrl-names = "sarsensor_active", "sarsensor_suspend";
+		pinctrl-0 = <&sarsensor_int_active>;
+		pinctrl-1 = <&sarsensor_int_suspend>;
+	};
+};
+/*Huaqin add sar sensors sx9310 by chenyijun5 at 2018/02/07 end*/
+&i2c_4 {
+		status = "okay";
+		focaltech@38{
+		compatible = "focaltech,fts";
+		reg = <0x38>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 0x2>;
+		vdd-supply = <&pm660l_l3>;
+		vcc_i2c-supply = <&pm660_l11>;
+		/* pins used by touchscreen */
+		pinctrl-names = "pmx_ts_active",
+		                "pmx_ts_suspend";
+		pinctrl-0 = <&ts_active>;
+		pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+		focaltech,name = "ft8716";
+		focaltech,family-id = <0x06>;
+		focaltech,reset-gpio = <&tlmm 66 0x0>;
+		focaltech,irq-gpio = <&tlmm 67 0x2002>;
+		focaltech,max-touch-number = <10>;
+		focaltech,reset-low-time = <100>;
+		focaltech,display-coords =  <0 0 1080 2246>;
+		focaltech,panel-coords = <0 0 1080 2246>;
+		focaltech,have-key = <0>;
+		focaltech,key-number = <3>;
+		focaltech,keys = <158 102 139>;
+		focaltech,key-y-coord = <2030>;
+		focaltech,key-x-coords = <160 360 570>;
+               };
+};
+/* Huaqin modify for ZQL1650-141 by chenyijun5 at 2018/02/01 start */
+&i2c_7 {        /* for P/L Sensor */
+	status = "okay";
+	stk@48 {
+		compatible = "stk,stk3x1x";
+		reg = <0x48>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <45 0x2>;
+		vdd-supply = <&pm660l_l3>;
+		vio-supply = <&pm660_l14>;
+		stk,irq-gpio = <&tlmm 45 0x02>;
+		pinctrl-names = "psensor_active", "psensor_suspend";
+		pinctrl-0 = <&psensor_int_active>;
+		pinctrl-1 = <&psensor_int_suspend>;
+		stk,state-reg = <0x0>;
+		stk,psctrl-reg = <0x31>;
+		stk,alsctrl-reg = <0x39>;
+		/* Huaqin modify for psensor led current by chenyijun5 at 2018/02/05 start */
+		stk,ledctrl-reg = <0xFF>;
+		/* Huaqin modify for psensor led current by chenyijun5 at 2018/02/05 end */
+		/* Huaqin modify for alsps wait reg by chenyijun5 at 2018/04/08 start */
+		stk,wait-reg = <0x0A>;
+		/* Huaqin modify for alsps wait reg by chenyijun5 at 2018/04/08 end */
+		/* Huaqin modify for psensor threshold by chenyijun5 at 2018/02/03 start */
+		stk,ps-thdh = <120>;
+		stk,ps-thdl = <90>;
+		/* Huaqin modify for psensor threshold by chenyijun5 at 2018/02/03 end */
+		/* Huaqin modify for lsensor gain by chenyijun5 at 2018/02/27 start */
+		stk,transmittance = <1100>;
+		/* Huaqin modify for lsensor gain by chenyijun5 at 2018/02/27 end */
+	};
+};
+/* Huaqin modify for ZQL1650-141 by chenyijun5 at 2018/02/01 end */
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+&pm660_charger {
+       ADC_SW_EN-gpios59 = <&tlmm 71 0x0>;
+       ADCPWREN_PMI_GP1-gpios34 = <&tlmm 3 0x0>;
+};
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */

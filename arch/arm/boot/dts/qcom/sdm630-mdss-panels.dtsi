@@ -19,6 +19,7 @@
 #include "dsi-panel-sharp-split-link-wuxga-video.dtsi"
 #include "dsi-panel-lgd-incell-sw49106-fhd-video.dtsi"
 #include "dsi-panel-hx8399c-fhd-plus-video.dtsi"
+#include "dsi-panel-auo-ft8716f-5p9-fhd-video.dtsi"
 
 &soc {
 	dsi_panel_pwr_supply: dsi_panel_pwr_supply {

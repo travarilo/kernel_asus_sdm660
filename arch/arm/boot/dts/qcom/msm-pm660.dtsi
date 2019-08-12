@@ -50,6 +50,12 @@
 				qcom,pon-type = <0>;
 				qcom,pull-up = <1>;
 				linux,code = <116>;
+			/* Huaqin add for ZQL1650-14 by lanshiming at 2018/1/17 start*/
+				qcom,support-reset = <1>;
+				qcom,s1-timer = <10256>;
+				qcom,s2-timer = <10>;
+				qcom,s2-type = <4>;
+			/* Huaqin add for ZQL1650-14 by lanshiming at 2018/1/17 end*/
 			};
 
 			qcom,pon_2 {
@@ -91,7 +97,14 @@
 			gpio@c200 {
 				reg = <0xc200 0x100>;
 				qcom,pin-num = <3>;
-				status = "disabled";
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+				status = "okay";
+				qcom,mode = <3>; /* Analog Pass Through */
+				qcom,pull = <5>; /* Input No pull */
+				qcom,vin-sel = <0>; /* VIN0 */
+				qcom,src-sel = <0>; /* Constant */
+				qcom,master-en = <0>; /* Eanble GPIO */
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
 			};
 
 			gpio@c300 {
@@ -145,7 +158,10 @@
 			gpio@cb00 {
 				reg = <0xcb00 0x100>;
 				qcom,pin-num = <12>;
-				status = "disabled";
+//Huaqin added by tangqingyong at 20180206 for USB alert start
+				status = "ok";
+				qcom,master-en = <0>;
+//Huaqin added by tangqingyong at 20180206 for USB alert end
 			};
 
 			gpio@cc00 {
@@ -185,7 +201,18 @@
 			interrupt-names = "eoc-int-en-set";
 			qcom,adc-bit-resolution = <15>;
 			qcom,adc-vdd-reference = <1875>;
-
+//Huaqin added by tangqingyong at 20180206 for USB alert start
+                       chan@19 {
+                               label = "chg-alert";
+                               reg = <0x19>;
+                               qcom,decimation = <0>;
+                               qcom,pre-div-channel-scaling = <0>;
+                               qcom,calibration-type = "absolute";
+                               qcom,scale-function = <0>;
+                               qcom,hw-settle-time = <2>;
+                               qcom,fast-avg-setup = <0>;
+                       };
+//Huaqin added by tangqingyong at 20180206 for USB alert end
 			chan@6 {
 				label = "die_temp";
 				reg = <6>;
@@ -296,7 +323,9 @@
 				qcom,pre-div-channel-scaling = <0>;
 				qcom,calibration-type = "ratiometric";
 				qcom,scale-function = <2>;
-				qcom,hw-settle-time = <2>;
+/* Huaqin modify for 1252435 by wuhongwen at 2018/11/15 start */
+				qcom,hw-settle-time = <0xf>;
+/* Huaqin modify for 1252435 by wuhongwen at 2018/11/15 end */
 				qcom,fast-avg-setup = <0>;
 				qcom,vadc-thermal-node;
 			};
@@ -312,6 +341,18 @@
 				qcom,fast-avg-setup = <0>;
 				qcom,cal-val = <0>;
 			};
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+			chan@13 {
+				label = "gpio3_adc";
+				reg = <0x13>;
+				qcom,decimation = <2>;
+				qcom,pre-div-channel-scaling = <0>;
+				qcom,calibration-type = "absolute";
+				qcom,scale-function = <0>;
+				qcom,hw-settle-time = <2>;
+				qcom,fast-avg-setup = <0>;
+			};
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
 		};
 
 		pm660_charger: qcom,qpnp-smb2 {
@@ -320,6 +361,9 @@
 			#size-cells = <1>;
 
 			qcom,pmic-revid = <&pm660_revid>;
+//Huaqin added by tangqingyong at 20180206 for USB alert start
+			qcom,chg-alert-vadc = <&pm660_vadc>;
+//Huaqin added by tangqingyong at 20180206 for USB alert end
 
 			io-channels = <&pm660_rradc 8>,
 				      <&pm660_rradc 10>,
@@ -332,11 +376,30 @@
 
 			qcom,wipower-max-uw = <5000000>;
 			dpdm-supply = <&qusb_phy0>;
-
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
 			qcom,thermal-mitigation
 					= <3000000 2500000 2000000 1500000
 						1000000 500000>;
-
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+			qcom,micro-usb;
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/2 start */
+/* Huaqin modify for ZQL1650-70 optimize Adapter ID by fangaijun at 2018/02/9 start */
+			qcom,fcc-max-ua = <1000000>;
+/* Huaqin modify for ZQL1650-70 optimize Adapter ID by fangaijun at 2018/02/9 end */
+			qcom,fv-max-uv = <4350000>;
+/* Huaqin modify for ZQL1650-70 optimize Adapter ID by fangaijun at 2018/02/9 start */
+			qcom,usb-icl-ua = <1000000>;
+/* Huaqin modify for ZQL1650-70 optimize Adapter ID by fangaijun at 2018/02/9 end */
+			qcom,float-option = <1>;
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/2 end */
+/* Huaqin modify for ZQL1650 recharge SOC and voltage by fangaijun at 2018/02/2 start */
+			qcom,auto-recharge-soc;
+/* Huaqin modify for ZQL1650 recharge SOC and voltage by fangaijun at 2018/02/2 end */
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+			qcom,pm-gpio3-vadc = <&pm660_vadc>;
+/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
 			qcom,chgr@1000 {
 				reg = <0x1000 0x100>;
 				interrupts =
@@ -451,6 +514,9 @@
 
 		pm660_pdphy: qcom,usb-pdphy@1700 {
 			compatible = "qcom,qpnp-pdphy";
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+			status = "disable";
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
 			reg = <0x1700 0x100>;
 			vdd-pdphy-supply = <&pm660l_l7>;
 			vbus-supply = <&smb2_vbus>;
@@ -552,9 +618,48 @@
 					   "rradc_die_temp";
 			qcom,rradc-base = <0x4500>;
 			qcom,fg-esr-timer-awake = <96 96>;
-			qcom,fg-esr-timer-asleep = <256 256>;
+/* Huaqin modify for ZQL1650-1244 A periodic pulse of 14s occurs when the phone idel by fangaijun  at 2018/05/14 start */
+			qcom,fg-esr-timer-asleep = <160 256>;
+/* Huaqin modify for ZQL1650-1244 A periodic pulse of 14s occurs when the phone idel by fangaijun  at 2018/05/14 end */
 			qcom,fg-esr-timer-charging = <0 96>;
 			qcom,cycle-counter-en;
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/1 start */
+			qcom,fg-cutoff-voltage = <3400>;
+			qcom,fg-empty-voltage = <2800>;
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/1 end */
+
+/* Huaqin modify for ZQL1650 remove cc-cv voltage by fangaijun  at 2018/03/22 start */
+			//qcom,fg-cc-cv-threshold-mv = <4340>;
+/* Huaqin modify for ZQL1650 remove cc-cv voltage by fangaijun  at 2018/03/22 end */
+/* Huaqin modify for ZQL1650-586 optimize low temperature discharging soc deviation by fangaijun  at 2018/03/22 start */
+/* Huaqin modify for ZQL1650-1096 optimize normal temperature charging soc deviation by fangaijun  at 2018/04/27 start */
+			qcom,fg-esr-tight-filter-micro-pct = <20000>;
+			qcom,fg-esr-broad-filter-micro-pct = <25000>;
+/* Huaqin modify for ZQL1650-1096 optimize normal temperature charging soc deviation by fangaijun  at 2018/04/27 end */
+			qcom,fg-esr-tight-lt-filter-micro-pct = <2000>;
+			qcom,fg-esr-broad-lt-filter-micro-pct = <2200>;
+			qcom,slope-limit-temp-threshold = <150>;
+			qcom,slope-limit-coeffs = <1 1 1 1>;
+/* Huaqin modify for ZQL1650-586 optimize low temperature discharging soc deviation by fangaijun  at 2018/03/22 end */
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/2 start */
+			qcom,fg-chg-term-current = <150>;
+			qcom,fg-sys-term-current = <(-200)>;
+			qcom,hold-soc-while-full;
+			qcom,linearize-soc;
+			qcom,fg-force-load-profile;
+/* Huaqin modify for ZQL1650 Realize HW Jeita by fangaijun  at 2018/02/6 start */
+			qcom,fg-jeita-thresholds = <0 1 59 60>;
+			qcom,fg-jeita-hyst-temp = <3>;
+/* Huaqin modify for ZQL1650 Realize HW Jeita by fangaijun  at 2018/02/6 end */
+/* Huaqin modify for ZQL1650 by fangaijun  at 2018/02/2 end */
+/* Huaqin modify for ZQL1650 recharge SOC and voltage by fangaijun at 2018/02/2 start */
+			qcom,fg-recharge-voltage = <4150>;
+			qcom,fg-recharge-soc-thr = <98>;
+			qcom,fg-auto-recharge-soc;
+/* Huaqin modify for ZQL1650 recharge SOC and voltage by fangaijun at 2018/02/2 end */
+//Huaqin added by tangqingyong at 20180226 for fg use external start
+			qcom,fg-rsense-sel=<1>;
+//Huaqin added by tangqingyong at 20180226 for fg use external end
 			status = "okay";
 
 			qcom,fg-batt-soc@4000 {
@@ -638,7 +743,9 @@
 			qcom,pmic-revid = <&pm660_revid>;
 			qcom,pmic-misc = <&pm660_misc>;
 			qcom,misc-clk-trim-error-reg = <0xf3>;
-			qcom,actuator-type = "lra";
+                        //Huaqin modify for vib bring up by guojianghong at 2018/1/31 begin
+			qcom,actuator-type = "erm";
+                        //Huaqin modify for vib bring up by guojianghong at 2018/1/31 end
 			qcom,play-mode = "direct";
 			qcom,vmax-mv = <3200>;
 			qcom,ilim-ma = <800>;

@@ -137,8 +137,10 @@
 		dai_mi2s2: qcom,msm-dai-q6-mi2s-tert {
 			compatible = "qcom,msm-dai-q6-mi2s";
 			qcom,msm-dai-q6-mi2s-dev-id = <2>;
-			qcom,msm-mi2s-rx-lines = <0>;
-			qcom,msm-mi2s-tx-lines = <3>;
+			/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 start */
+			qcom,msm-mi2s-rx-lines = <1>;
+			qcom,msm-mi2s-tx-lines = <2>;
+			/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 end */
 		};
 
 		dai_mi2s5: qcom,msm-dai-q6-mi2s-quin {
@@ -830,24 +832,34 @@
 		qcom,msm-mclk-freq = <9600000>;
 		qcom,msm-mbhc-hphl-swh = <1>;
 		qcom,msm-mbhc-gnd-swh = <1>;
-		qcom,msm-micbias2-ext-cap;
-		qcom,msm-hs-micbias-type = "external";
+		/* Huaqin add for change hp micbias to int by xudayi at 2018/03/05  start */
+		qcom,msm-micbias1-ext-cap;
+		qcom,msm-hs-micbias-type = "internal";
+		qcom,wsa-disable;
+		qcom,msm-spk-ext-pa = <&tlmm 24 0>;
+		qcom,msm-hph-ext-sw = <&tlmm 66 0>, <&tlmm 94 0>;
+		/* Huaqin add for change hp micbias to int by xudayi at 2018/03/05 end */
 		qcom,us-euro-gpios = <&us_euro_gpio>;
 		qcom,cdc-pdm-gpios = <&cdc_pdm_gpios>;
 		qcom,cdc-comp-gpios = <&cdc_comp_gpios>;
 		qcom,cdc-dmic-gpios = <&cdc_dmic_gpios>;
+		/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 start */
+		qcom,tert-mi2s-gpios = <&tert_mi2s_gpios>;
+		/* Huaqin add for config nxp pa i2s by xudayi at 2018/03/03 end */
 		qcom,audio-routing =
 			"RX_BIAS", "INT_MCLK0",
 			"SPK_RX_BIAS", "INT_MCLK0",
 			"INT_LDO_H", "INT_MCLK0",
 			"RX_I2S_CLK", "INT_MCLK0",
 			"TX_I2S_CLK", "INT_MCLK0",
+			/* Huaqin add for change hp micbias to int by xudayi at 2018/03/05 start */
 			"MIC BIAS External", "Handset Mic",
-			"MIC BIAS External2", "Headset Mic",
+			"MIC BIAS Internal2", "Headset Mic",
 			"MIC BIAS External", "Secondary Mic",
 			"AMIC1", "MIC BIAS External",
-			"AMIC2", "MIC BIAS External2",
+			"AMIC2", "MIC BIAS Internal2",
 			"AMIC3", "MIC BIAS External",
+			/* Huaqin add for change hp micbias to int by xudayi at 2018/03/05 end */
 			"DMIC1", "MIC BIAS External",
 			"MIC BIAS External", "Digital Mic1",
 			"DMIC2", "MIC BIAS External",

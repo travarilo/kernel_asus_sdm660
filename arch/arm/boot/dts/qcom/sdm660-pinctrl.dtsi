@@ -1021,12 +1021,12 @@
 		spkr_1_sd_n {
 			spkr_1_sd_n_sleep: spkr_1_sd_n_sleep {
 				mux {
-					pins = "gpio26";
+					pins = "gpio70";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio26";
+					pins = "gpio70";
 					drive-strength = <2>;   /* 2 mA */
 					bias-pull-down;
 					input-enable;
@@ -1035,12 +1035,12 @@
 
 			spkr_1_sd_n_active: spkr_1_sd_n_active {
 				mux {
-					pins = "gpio26";
+					pins = "gpio70";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio26";
+					pins = "gpio70";
 					drive-strength = <16>;   /* 16 mA */
 					bias-disable;
 					output-high;
@@ -1051,12 +1051,12 @@
 		spkr_2_sd_n {
 			spkr_2_sd_n_sleep: spkr_2_sd_n_sleep {
 				mux {
-					pins = "gpio27";
+					pins = "gpio34";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio27";
+					pins = "gpio34";
 					drive-strength = <2>;   /* 2 mA */
 					bias-pull-down;
 					input-enable;
@@ -1065,12 +1065,12 @@
 
 			spkr_2_sd_n_active: spkr_2_sd_n_active {
 				mux {
-					pins = "gpio27";
+					pins = "gpio34";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio27";
+					pins = "gpio34";
 					drive-strength = <16>;   /* 16 mA */
 					bias-disable;
 					output-high;
@@ -1246,12 +1246,12 @@
 		cam_tof_active: cam_tof_active {
 			/* LASER */
 			mux {
-				pins = "gpio50", "gpio42", "gpio45";
+				pins = "gpio50", "gpio42";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio50", "gpio42", "gpio45";
+				pins = "gpio50", "gpio42";
 				bias-pull-up;
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1260,12 +1260,12 @@
 		cam_tof_suspend: cam_tof_suspend {
 			/* LASER */
 			mux {
-				pins = "gpio50", "gpio42", "gpio45";
+				pins = "gpio50", "gpio42";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio50", "gpio42", "gpio45";
+				pins = "gpio50", "gpio42";
 				bias-pull-down; /* PULL DOWN */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1304,12 +1304,12 @@
 		cam_sensor_rear_active: cam_sensor_rear_active {
 			/* RESET, STANDBY */
 			mux {
-				pins = "gpio46","gpio44";
+				pins = "gpio46";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio46","gpio44";
+				pins = "gpio46";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1318,12 +1318,12 @@
 		cam_sensor_rear_suspend: cam_sensor_rear_suspend {
 			/* RESET, STANDBY */
 			mux {
-				pins = "gpio46","gpio44";
+				pins = "gpio46";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio46","gpio44";
+				pins = "gpio46";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1359,32 +1359,34 @@
 			};
 		};
 
+        /* Huaqin modify for add sub camera dts config by lizihao at 2017/02/11 start*/
 		cam_sensor_rear2_active: cam_sensor_rear2_active {
-			/* RESET, STANDBY */
+			/* RESET */
 			mux {
-				pins = "gpio48","gpio51";
+				pins = "gpio48";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio48","gpio51";
+				pins = "gpio48";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
 		};
 
 		cam_sensor_rear2_suspend: cam_sensor_rear2_suspend {
-			/* RESET, STANDBY */
+			/* RESET */
 			mux {
-				pins = "gpio48","gpio51";
+				pins = "gpio48";
 				function = "gpio";
 			};
 			config {
-				pins = "gpio48","gpio51";
+				pins = "gpio48";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
 		};
+        /* Huaqin modify for add sub camera dts config by lizihao at 2017/02/11 end*/
 
 		cam_sensor_mclk2_active: cam_sensor_mclk2_active {
 			/* MCLK1 */
@@ -1419,12 +1421,12 @@
 		cam_sensor_front_active: cam_sensor_front_active {
 			/* RESET  VANA*/
 			mux {
-				pins = "gpio47", "gpio44";
+				pins = "gpio47";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio47", "gpio44";
+				pins = "gpio47";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -1637,12 +1639,12 @@
 
 		blsp2_uart2_active: blsp2_uart2_active {
 			mux {
-				pins = "gpio24", "gpio25", "gpio26", "gpio27";
+				pins = "gpio24", "gpio25";
 				function = "blsp_uart6_a";
 			};
 
 			config {
-				pins = "gpio24", "gpio25", "gpio26", "gpio27";
+				pins = "gpio24", "gpio25";
 				drive-strength = <2>;
 				bias-disable;
 			};
@@ -1650,12 +1652,12 @@
 
 		blsp2_uart2_sleep: blsp2_uart2_sleep {
 			mux {
-				pins = "gpio24", "gpio25", "gpio26", "gpio27";
+				pins = "gpio24", "gpio25";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio24", "gpio25", "gpio26", "gpio27";
+				pins = "gpio24", "gpio25";
 				drive-strength = <2>;
 				bias-disable;
 			};
@@ -1664,12 +1666,12 @@
 		tlmm_gpio_key {
 			gpio_key_active: gpio_key_active {
 				mux {
-					pins = "gpio64", "gpio113";
+					pins = "gpio43", "gpio44";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio64", "gpio113";
+					pins = "gpio43", "gpio44";
 					drive-strength = <2>;
 					bias-pull-up;
 				};
@@ -1677,12 +1679,12 @@
 
 			gpio_key_suspend: gpio_key_suspend {
 				mux {
-					pins = "gpio64", "gpio113";
+					pins = "gpio43", "gpio44";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio64", "gpio113";
+					pins = "gpio43", "gpio44";
 					drive-strength = <2>;
 					bias-pull-up;
 				};
@@ -1833,6 +1835,109 @@
 					bias-disable;
 				};
 			};
+
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 start */
+			commonfp_reset_reset: commonfp_reset_reset {
+				mux {
+					pins = "gpio20";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio20";
+					drive-strength = <2>;
+					bias-disable = <0>;
+					output-low;
+				};
+			};
+
+			commonfp_reset_active: commonfp_reset_active {
+				mux {
+					pins = "gpio20";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio20";
+					drive-strength = <2>;
+					bias-disable = <0>;
+					output-high;
+				};
+			};
+
+			commonfp_irq_active: commonfp_irq_active {
+				mux {
+					pins = "gpio72";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio72";
+					drive-strength = <2>;
+					bias-disable = <0>;
+					input-enable;
+				};
+			};
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 end */
+/*Huaqin modify for ZQL1650-141 by chenyijun5 at 2018/02/01 start*/
+		psensor_irq {
+			psensor_int_active: psensor_int_active {
+				mux {
+					pins = "gpio45";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio45";
+					drive-strength = <2>;
+					bias-pull-up;
+					input-enable;
+				};
+			};
+
+			psensor_int_suspend: psensor_int_suspend {
+				mux {
+					pins = "gpio45";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio45";
+					drive-strength = <2>;
+					bias-pull-up;
+					input-enable;
+				};
+			};
+		};
+/*Huaqin modify for ZQL1650-141 by chenyijun5 at 2018/02/01 end*/
+/*Huaqin add for sar irq by chenyijun5 at 2018/02/07 start*/
+		sarsensor_irq {
+			sarsensor_int_active: sarsensor_int_active {
+				mux {
+					pins = "gpio77";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio77";
+					drive-strength = <2>;
+					bias-pull-up;
+					input-enable;
+				};
+			};
+
+			sarsensor_int_suspend: sarsensor_int_suspend {
+				mux {
+					pins = "gpio77";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio77";
+					drive-strength = <2>;
+					bias-pull-up;
+					input-enable;
+				};
+			};
+		};
+/*Huaqin add for sar irq by chenyijun5 at 2018/02/07 end*/
 		};
 	};
 };

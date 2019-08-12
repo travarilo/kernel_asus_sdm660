@@ -112,6 +112,10 @@
 			compatible = "qcom,rpm-smd-regulator";
 			regulator-name = "pm660l_l3";
 			qcom,set = <3>;
+			/* Huaqin add for psensor ldo by chenyijun5 at 2018/02/05 start */
+			qcom,init-ldo-mode = <1>;
+			regulator-always-on;
+			/* Huaqin add for psensor ldo by chenyijun5 at 2018/02/05 end */
 			status = "disabled";
 		};
 	};

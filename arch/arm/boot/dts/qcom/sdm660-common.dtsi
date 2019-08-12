@@ -165,7 +165,10 @@
 				<61 512 240000 800000>;
 
 		qcom,dwc-usb3-msm-tx-fifo-size = <21288>;
-		extcon = <&pm660_pdphy>;
+		// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+		extcon = <&pm660_charger>;
+		vbus_dwc3-supply = <&smb2_vbus>;
+		// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
 		qcom,pm-qos-latency = <41>; /* CPU-CLUSTER-WFI-LVL latency +1 */
 
 		clocks = <&clock_gcc GCC_USB30_MASTER_CLK>,
@@ -192,7 +195,10 @@
 			reg = <0x0a800000 0xc8d0>;
 			interrupt-parent = <&intc>;
 			interrupts = <0 131 0>;
-			usb-phy = <&qusb_phy0>, <&ssphy>;
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+			usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+			maximum-speed = "high-speed";
+			// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
 			tx-fifo-resize;
 			snps,usb3-u1u2-disable;
 			snps,nominal-elastic-buffer;
@@ -281,16 +287,19 @@
 		qcom,vdd-voltage-level = <0 925000 925000>;
 		qcom,tune2-efuse-bit-pos = <25>;
 		qcom,tune2-efuse-num-bits = <4>;
+		/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/04/08 start */
+		qcom,tune2-efuse-correction = <(-4)>;
 		qcom,qusb-phy-init-seq = <0xf8 0x80
-					0xb3 0x84
-					0x83 0x88
-					0xc0 0x8c
+					0x83 0x84
+					0x81 0x88
+					0xc7 0x8c
 					0x30 0x08
 					0x79 0x0c
 					0x21 0x10
 					0x14 0x9c
 					0x9f 0x1c
 					0x00 0x18>;
+		/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/04/08 end */
 		phy_type= "utmi";
 		qcom,phy-clk-scheme = "cml";
 		qcom,major-rev = <1>;
@@ -304,9 +313,17 @@
 		resets = <&clock_gcc GCC_QUSB2PHY_PRIM_BCR>;
 		reset-names = "phy_reset";
 	};
+	// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+	// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
 
 	ssphy: ssphy@c010000 {
 		compatible = "qcom,usb-ssphy-qmp-v2";
+		// Added by huqinmin remove Type-C for micro-usb 2018/1/31 begin
+		status = "disable";
+		// Added by huqinmin remove Type-C for micro-usb 2018/1/31 end
 		reg = <0xc010000 0xe18>,
 			<0x01fcb244 0x4>,
 			<0x01fcb248 0x4>;
@@ -519,16 +536,18 @@
 		vdda18-supply = <&pm660_l10>;
 		vdda33-supply = <&pm660l_l7>;
 		qcom,vdd-voltage-level = <0 925000 925000>;
+		/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/03/19 start */
 		qcom,qusb-phy-init-seq = <0xF8 0x80
-					0xB3 0x84
-					0x83 0x88
-					0xC0 0x8C
+					0x83 0x84
+					0x81 0x88
+					0xC7 0x8C
 					0x30 0x08
 					0x79 0x0C
 					0x21 0x10
 					0x14 0x9C
 					0x9F 0x1C
 					0x00 0x18>;
+		/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/03/19 end */
 		phy_type = "utmi";
 		qcom,phy-clk-scheme = "cml";
 		qcom,major-rev = <1>;

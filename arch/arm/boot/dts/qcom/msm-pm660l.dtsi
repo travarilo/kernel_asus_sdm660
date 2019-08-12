@@ -81,7 +81,9 @@
 			gpio@c400 {
 				reg = <0xc400 0x100>;
 				qcom,pin-num = <5>;
-				status = "disabled";
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 start */
+				status = "ok";
+/* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 end */
 			};
 
 			gpio@c500 {
@@ -174,7 +176,8 @@
 			#pwm-cells = <2>;
 			qcom,period = <6000000>;
 
-			qcom,lpg {
+			/* Huaqin delete for TT1178692 enable off charging led by guojianghong at 2018/04/17 start */
+			/*qcom,lpg {
 				label = "lpg";
 				cell-index = <0>;
 				qcom,duty-percents =
@@ -182,7 +185,8 @@
 					0x46 0x50 0x5a 0x64
 					0x64 0x5a 0x50 0x46 0x3c 0x32 0x28 0x1e
 					0x14 0x0a 0x01>;
-			};
+			};*/
+			/* Huaqin delete for TT1178692 enable off charging led by guojianghong at 2018/04/17 end */
 		};
 
 		pm660l_pwm_4: pwm@b400 {
@@ -214,10 +218,13 @@
 				qcom,default-state = "off";
 				linux,name = "red";
 				qcom,start-idx = <0>;
-				qcom,idx-len = <22>;
-				qcom,duty-pcts =
-					[01 0a 14 1e 28 32 3c 46 50 5a 64
-					64 5a 50 46 3c 32 28 1e 14 0a 01];
+/* Huaqin modify for blink behavior by guojianghong at 2018/04/8 start */
+				qcom,idx-len = <2>;
+				qcom,lut-flags = <19>;
+				qcom,pause-lo = <3400>;
+				qcom,ramp-step-ms = <300>;
+				qcom,duty-pcts = [00 22];
+/* Huaqin modify for blink behavior by guojianghong at 2018/04/8 end */
 				qcom,use-blink;
 			};
 
@@ -230,6 +237,15 @@
 				qcom,max-current = <12>;
 				qcom,default-state = "off";
 				linux,name = "green";
+/* Huaqin modify for blink behavior by guojianghong at 2018/04/8 start */
+				qcom,start-idx = <0>;
+				qcom,idx-len = <2>;
+				qcom,lut-flags = <19>;
+				qcom,pause-lo = <1400>;
+				qcom,ramp-step-ms = <300>;
+				qcom,duty-pcts = [00 40];
+				qcom,use-blink;
+/* Huaqin modify for blink behavior by guojianghong at 2018/04/8 end */
 			};
 
 			blue_led: qcom,rgb_2 {
@@ -295,10 +311,14 @@
 			pm660l_flash0: qcom,flash_0 {
 				label = "flash";
 				qcom,led-name = "led:flash_0";
-				qcom,max-current = <1500>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,max-current = <1000>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
 				qcom,default-led-trigger = "flash0_trigger";
 				qcom,id = <0>;
-				qcom,current-ma = <1000>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,current-ma = <900>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
@@ -308,10 +328,16 @@
 			pm660l_flash1: qcom,flash_1 {
 				label = "flash";
 				qcom,led-name = "led:flash_1";
-				qcom,max-current = <1500>;
+				/* Huaqin modify for change front flash current by lizihao at 2018/03/19 start */
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,max-current = <280>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
 				qcom,default-led-trigger = "flash1_trigger";
 				qcom,id = <1>;
-				qcom,current-ma = <1000>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,current-ma = <250>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
+				/* Huaqin modify for change front flash current by lizihao at 2018/03/19 end */
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
@@ -346,10 +372,14 @@
 			pm660l_torch1: qcom,torch_1 {
 				label = "torch";
 				qcom,led-name = "led:torch_1";
-				qcom,max-current = <500>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,max-current = <150>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
 				qcom,default-led-trigger = "torch1_trigger";
 				qcom,id = <1>;
-				qcom,current-ma = <300>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 start*/
+				qcom,current-ma = <110>;
+				/* Huaqin modify for limit flash & torch current by lizihao at 2018/03/25 end*/
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
 				qcom,hdrm-vol-hi-lo-win-mv = <100>;
@@ -370,14 +400,14 @@
 			pm660l_switch0: qcom,led_switch_0 {
 				label = "switch";
 				qcom,led-name = "led:switch_0";
-				qcom,led-mask = <3>;
+				qcom,led-mask = <1>;
 				qcom,default-led-trigger = "switch0_trigger";
 			};
 
 			pm660l_switch1: qcom,led_switch_1 {
 				label = "switch";
 				qcom,led-name = "led:switch_1";
-				qcom,led-mask = <4>;
+				qcom,led-mask = <2>;
 				qcom,default-led-trigger = "switch1_trigger";
 			};
 		};
@@ -431,8 +461,10 @@
 			#size-cells = <1>;
 			qcom,pmic-revid = <&pm660l_revid>;
 			qcom,swire-control;
-			status = "disabled";
-
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 start */
+			//status = "disabled";
+			status = "okay";
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 end */
 			ibb_regulator: qcom,ibb@dc00 {
 				reg = <0xdc00 0x100>;
 				reg-names = "ibb_reg";
@@ -446,6 +478,10 @@
 				qcom,qpnp-ibb-slew-rate = <2000000>;
 				qcom,qpnp-ibb-init-voltage = <4000000>;
 				qcom,qpnp-ibb-init-amoled-voltage = <4000000>;
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 start */
+				qcom,qpnp-ibb-limit-maximum-current = <200>;
+				qcom,qpnp-ibb-limit-max-current-enable;
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 end */
 			};
 
 			lab_regulator: qcom,lab@de00 {
@@ -463,6 +499,10 @@
 				qcom,qpnp-lab-init-amoled-voltage = <4600000>;
 
 				qcom,notify-lab-vreg-ok-sts;
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 start */
+				qcom,qpnp-lab-limit-maximum-current = <200>;
+				qcom,qpnp-lab-limit-max-current-enable;
+/* Huaqin modify for ZQL1650 by xieguoqiang at 2018/02/09 end */
 			};
 		};
 	};

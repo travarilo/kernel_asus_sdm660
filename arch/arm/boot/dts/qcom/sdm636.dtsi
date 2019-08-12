@@ -39,7 +39,16 @@
 			/delete-node/ port@4;
 		};
 	};
+};
 
+&soc {
+	gpio_keys {
+		/delete-node/ camera_focus;
+		/delete-node/ camera_snapshot;
+	};
+};
+
+&soc {
 	devfreq_memlat_4: qcom,arm-memlat-mon-4 {
 		qcom,core-dev-table =
 		< 1113600 762 >,

@@ -151,14 +151,17 @@
 / {
 	qrd_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
-
-		#include "fg-gen3-batterydata-qrd-skuk-4v4-3000mah.dtsi"
+/* Huaqin modify for ZQL1650  by fangaijun at 2018/02/1 start */
+		#include "fg-gen3-batterydata-3292665_Huaqin_QL1650cos_5000mAh.dtsi"
+/* Huaqin modify for ZQL1650  by fangaijun at 2018/02/1 end */
 	};
 };
 
 &pm660_fg {
 	qcom,battery-data = <&qrd_batterydata>;
-	qcom,fg-jeita-thresholds = <0 5 55 55>;
+/* Huaqin modify for ZQL1650 Realize HW Jeita by fangaijun  at 2018/02/6 start */
+	//qcom,fg-jeita-thresholds = <0 10 50 60>;
+/* Huaqin modify for ZQL1650 Realize HW Jeita by fangaijun  at 2018/02/6 end */
 	qcom,battery-thermal-coefficients = [9d 50 ff];
 };
 
@@ -194,6 +197,9 @@
 	vdd-supply = <&pm660l_l4>;
 	qcom,vdd-voltage-level = <2950000 2950000>;
 	qcom,vdd-current-level = <200 570000>;
+	// Huaqin add for emmc vdd always on by chenhuazhen at 2018/04/24  start
+	qcom,vdd-always-on;
+	// Huaqin add for emmc vdd always on by chenhuazhen at 2018/04/24  end
 
 	/* device communication power supply */
 	vdd-io-supply = <&pm660_l8>;
@@ -352,8 +358,8 @@
 	qcom,msm-ssc-sensors {
 		compatible = "qcom,msm-ssc-sensors";
 	};
-
-	gpio_keys {
+/* Huaqin modify for ZQL1650-164 by zhengwu.lu at 2018/01/24 start */
+	/*gpio_keys {
 		compatible = "gpio-keys";
 		input-name = "gpio-keys";
 		status = "ok";
@@ -366,7 +372,18 @@
 			gpio-key,wakeup;
 			debounce-interval = <15>;
 		};
-	};
+
+		home {
+			label = "home";
+			gpios = <&pm660_gpios 11 0x1>;
+			linux,input-type = <1>;
+			linux,code = <102>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
+	};*/
+/* Huaqin modify for ZQL1650-164 by zhengwu.lu at 2018/01/24 end */
 
 	hbtp {
 		compatible = "qcom,hbtp-input";
@@ -387,11 +404,12 @@
 	};
 };
 
+/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/03/19 start */
 &qusb_phy0 {
 	qcom,qusb-phy-init-seq = <0xf8 0x80
 				0x83 0x84
-				0x83 0x88
-				0xc3 0x8c
+				0x81 0x88
+				0xc7 0x8c
 				0x30 0x08
 				0x79 0x0c
 				0x21 0x10
@@ -399,3 +417,4 @@
 				0x9f 0x1c
 				0x00 0x18>;
 };
+/* Huaqin modify for ZQL1650-486 by liunianliang at 2018/03/19 end */

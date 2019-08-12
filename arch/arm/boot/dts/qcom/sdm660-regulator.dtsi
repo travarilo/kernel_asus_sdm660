@@ -380,7 +380,11 @@
 		pm660l_l7: regulator-l7 {
 			regulator-min-microvolt = <2700000>;
 			regulator-max-microvolt = <3125000>;
-			parent-supply = <&pm660_l10>;
+		/* Huaqin add for change LDO by xuefeng at 2018/01/31 start */
+			//parent-supply = <&pm660_l10>;
+			qcom,init-voltage = <3125000>;
+			regulator-always-on;
+		/* Huaqin add for change LDO by xuefeng at 2018/01/31 end */
 			status = "okay";
 		};
 	};
@@ -388,8 +392,10 @@
 	rpm-regulator-ldob8 {
 		status = "okay";
 		pm660l_l8: regulator-l8 {
-			regulator-min-microvolt = <3200000>;
-			regulator-max-microvolt = <3400000>;
+			/*Huaqin modify for af_vdd voltage by lizihao at 2015/02/05 start*/
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+			/*Huaqin modify for af_vdd voltage by lizihao at 2015/02/05 end*/
 			status = "okay";
 		};
 	};
