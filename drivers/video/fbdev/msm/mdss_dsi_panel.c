@@ -374,6 +374,9 @@ ret:
 	return rc;
 }
 
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_CORE_v27
+extern long syna_gesture_mode;
+#endif
 int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -498,7 +501,18 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_CORE_v27
+		if (strstr(mdss_mdp_panel, "qcom,mdss_dsi_td4310_1080p_video_txd")) {
+			if (!syna_gesture_mode)
+				gpio_set_value((ctrl_pdata->rst_gpio), 0);
+			else
+				gpio_set_value((ctrl_pdata->rst_gpio), 1);
+		} else {
+			gpio_set_value((ctrl_pdata->rst_gpio), 1);
+		}
+#else
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+#endif
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio)) {
 			gpio_set_value(ctrl_pdata->lcd_mode_sel_gpio, 0);

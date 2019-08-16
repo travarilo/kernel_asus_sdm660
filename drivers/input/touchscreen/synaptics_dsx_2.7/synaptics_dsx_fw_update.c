@@ -43,24 +43,25 @@
 #include "synaptics_dsx_core.h"
 
 #define FW_IHEX_NAME "synaptics/startup_fw_update.bin"
-#define FW_IMAGE_NAME "synaptics/startup_fw_update.img"
-/*
+#define FW_IMAGE_NAME "startup_fw_update.img"
 #define DO_STARTUP_FW_UPDATE
-*/
-/*
+
+
 #ifdef DO_STARTUP_FW_UPDATE
+/*
 #ifdef CONFIG_FB
 #define WAIT_FOR_FB_READY
 #define FB_READY_WAIT_MS 100
 #define FB_READY_TIMEOUT_S 30
 #endif
-#endif
 */
+#endif
+#define ENABLE_SYS_REFLASH true
 /*
 #define MAX_WRITE_SIZE 4096
 */
 
-#define ENABLE_SYS_REFLASH false
+
 #define FORCE_UPDATE false
 #define DO_LOCKDOWN false
 
@@ -3952,8 +3953,6 @@ int set_tddi_lockdown_data(unsigned char *lockdown_data, unsigned short leng)
 	retval = fwu_erase_lockdown_data();
 	if (retval < 0)
 		goto exit;
-
-	blk_cnt = fwu->blkcount.tddi_lockdown_data;
 
 	fwu->config_size = fwu->blkcount.tddi_lockdown_data * fwu->block_size;
 	retval = fwu_allocate_read_config_buf(fwu->config_size);

@@ -137,6 +137,8 @@ static void apen_lift(void)
 	input_report_key(apen->apen_dev, BTN_TOOL_RUBBER, 0);
 	input_sync(apen->apen_dev);
 	apen->apen_present = false;
+
+	return;
 }
 
 static void apen_report(void)
@@ -233,6 +235,8 @@ static void apen_report(void)
 			x, y, pressure);
 
 	apen->apen_present = true;
+
+	return;
 }
 
 static void apen_set_params(void)
@@ -368,6 +372,7 @@ static int apen_scan_pdt(void)
 				switch (fd.fn_number) {
 				case SYNAPTICS_RMI4_F12:
 					goto f12_found;
+					break;
 				}
 			} else {
 				break;
@@ -534,6 +539,8 @@ static void synaptics_rmi4_apen_remove(struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	complete(&apen_remove_complete);
+
+	return;
 }
 
 static void synaptics_rmi4_apen_reset(struct synaptics_rmi4_data *rmi4_data)
@@ -546,6 +553,8 @@ static void synaptics_rmi4_apen_reset(struct synaptics_rmi4_data *rmi4_data)
 	apen_lift();
 
 	apen_scan_pdt();
+
+	return;
 }
 
 static void synaptics_rmi4_apen_reinit(struct synaptics_rmi4_data *rmi4_data)
@@ -554,6 +563,8 @@ static void synaptics_rmi4_apen_reinit(struct synaptics_rmi4_data *rmi4_data)
 		return;
 
 	apen_lift();
+
+	return;
 }
 
 static void synaptics_rmi4_apen_e_suspend(struct synaptics_rmi4_data *rmi4_data)
@@ -562,6 +573,8 @@ static void synaptics_rmi4_apen_e_suspend(struct synaptics_rmi4_data *rmi4_data)
 		return;
 
 	apen_lift();
+
+	return;
 }
 
 static void synaptics_rmi4_apen_suspend(struct synaptics_rmi4_data *rmi4_data)
@@ -570,6 +583,8 @@ static void synaptics_rmi4_apen_suspend(struct synaptics_rmi4_data *rmi4_data)
 		return;
 
 	apen_lift();
+
+	return;
 }
 
 static struct synaptics_rmi4_exp_fn active_pen_module = {
@@ -597,6 +612,8 @@ static void __exit rmi4_active_pen_module_exit(void)
 	synaptics_rmi4_new_function(&active_pen_module, false);
 
 	wait_for_completion(&apen_remove_complete);
+
+	return;
 }
 
 module_init(rmi4_active_pen_module_init);
