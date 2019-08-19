@@ -180,6 +180,7 @@ config SND_SOC_ALL_CODECS
 	select SND_SOC_WM9705 if SND_SOC_AC97_BUS
 	select SND_SOC_WM9712 if SND_SOC_AC97_BUS
 	select SND_SOC_WM9713 if SND_SOC_AC97_BUS
+	select SND_SOC_AW87339 if I2C
         help
           Normally ASoC codec drivers are only built if a machine driver which
           uses them is also built since they are only usable with a machine
@@ -190,6 +191,12 @@ config SND_SOC_ALL_CODECS
 	  be selected separately.
 
           If unsure select "N".
+
+config SND_SOC_AW87339
+	tristate "SoC Audio for awinic AW87339 Smart K PA"
+	depends on I2C
+	help
+	  This option enables support for AW87339 Smart K PA
 
 config SND_SOC_88PM860X
 	tristate
