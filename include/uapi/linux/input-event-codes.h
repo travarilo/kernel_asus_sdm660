@@ -653,6 +653,14 @@
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
+/* Touch gesture */
+#define KEY_TP_GESTURE_W		0x2ec
+#define KEY_TP_GESTURE_E		0x2ed
+#define KEY_TP_GESTURE_S		0x2ee
+#define KEY_TP_GESTURE_Z		0x2ef
+#define KEY_TP_GESTURE_C		0x2f0
+#define KEY_TP_GESTURE_V		0x2f1
+
 /* We avoid low common keys in module aliases so they don't get huge. */
 #define KEY_MIN_INTERESTING	KEY_MUTE
 #define KEY_MAX			0x2ff
