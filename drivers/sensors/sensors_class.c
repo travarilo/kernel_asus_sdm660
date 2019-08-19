@@ -451,33 +451,6 @@ static ssize_t sensors_calibrate_store(struct device *dev,
 	return size;
 }
 
-static struct device_attribute sensors_class_attrs[] = {
-	__ATTR(name, 0444, sensors_name_show, NULL),
-	__ATTR(vendor, 0444, sensors_vendor_show, NULL),
-	__ATTR(version, 0444, sensors_version_show, NULL),
-	__ATTR(handle, 0444, sensors_handle_show, NULL),
-	__ATTR(type, 0444, sensors_type_show, NULL),
-	__ATTR(max_range, 0444, sensors_max_range_show, NULL),
-	__ATTR(resolution, 0444, sensors_resolution_show, NULL),
-	__ATTR(sensor_power, 0444, sensors_power_show, NULL),
-	__ATTR(min_delay, 0444, sensors_min_delay_show, NULL),
-	__ATTR(fifo_reserved_event_count, 0444, sensors_fifo_event_show, NULL),
-	__ATTR(fifo_max_event_count, 0444, sensors_fifo_max_show, NULL),
-	__ATTR(max_delay, 0444, sensors_max_delay_show, NULL),
-	__ATTR(flags, 0444, sensors_flags_show, NULL),
-	__ATTR(enable, 0664, sensors_enable_show, sensors_enable_store),
-	__ATTR(enable_wakeup, 0664, sensors_enable_wakeup_show,
-			sensors_enable_wakeup_store),
-	__ATTR(poll_delay, 0664, sensors_delay_show, sensors_delay_store),
-	__ATTR(self_test, 0440, sensors_test_show, NULL),
-	__ATTR(max_latency, 0660, sensors_max_latency_show,
-			sensors_max_latency_store),
-	__ATTR(flush, 0660, sensors_flush_show, sensors_flush_store),
-	__ATTR(calibrate, 0664, sensors_calibrate_show,
-			sensors_calibrate_store),
-	__ATTR_NULL,
-};
-
 /**
  * sensors_classdev_register - register a new object of sensors_classdev class.
  * @parent: The device to register.
@@ -515,12 +488,67 @@ void sensors_classdev_unregister(struct sensors_classdev *sensors_cdev)
 }
 EXPORT_SYMBOL(sensors_classdev_unregister);
 
+static DEVICE_ATTR_RO(sensors_name);
+static DEVICE_ATTR_RO(sensors_vendor);
+static DEVICE_ATTR_RO(sensors_version);
+static DEVICE_ATTR_RO(sensors_handle);
+static DEVICE_ATTR_RO(sensors_type);
+static DEVICE_ATTR_RO(sensors_max_range);
+static DEVICE_ATTR_RO(sensors_resolution);
+static DEVICE_ATTR_RO(sensors_power);
+static DEVICE_ATTR_RO(sensors_min_delay);
+static DEVICE_ATTR_RO(sensors_fifo_event);
+static DEVICE_ATTR_RO(sensors_fifo_max);
+static DEVICE_ATTR_RO(sensors_max_delay);
+static DEVICE_ATTR_RO(sensors_flags);
+static DEVICE_ATTR_RW(sensors_enable);
+static DEVICE_ATTR_RW(sensors_enable_wakeup);
+static DEVICE_ATTR_RW(sensors_delay);
+static DEVICE_ATTR_RO(sensors_test);
+static DEVICE_ATTR_RW(sensors_max_latency);
+static DEVICE_ATTR_RW(sensors_flush);
+static DEVICE_ATTR_RW(sensors_calibrate);
+
+static struct attribute *sensor_class_attrs[] = {
+	&dev_attr_sensors_name.attr,
+	&dev_attr_sensors_vendor.attr,
+	&dev_attr_sensors_version.attr,
+	&dev_attr_sensors_handle.attr,
+	&dev_attr_sensors_type.attr,
+	&dev_attr_sensors_max_range.attr,
+	&dev_attr_sensors_resolution.attr,
+	&dev_attr_sensors_power.attr,
+	&dev_attr_sensors_min_delay.attr,
+	&dev_attr_sensors_fifo_event.attr,
+	&dev_attr_sensors_fifo_max.attr,
+	&dev_attr_sensors_max_delay.attr,
+	&dev_attr_sensors_flags.attr,
+	&dev_attr_sensors_enable.attr,
+	&dev_attr_sensors_enable_wakeup.attr,
+	&dev_attr_sensors_delay.attr,
+	&dev_attr_sensors_test.attr,
+	&dev_attr_sensors_max_latency.attr,
+	&dev_attr_sensors_flush.attr,
+	&dev_attr_sensors_calibrate.attr,
+	NULL,
+};
+
+static const struct attribute_group sensor_group = {
+	.attrs = sensor_class_attrs,
+};
+
+
+static const struct attribute_group *sensor_groups[] = {
+	&sensor_group,
+	NULL,
+};
+
 static int __init sensors_init(void)
 {
 	sensors_class = class_create(THIS_MODULE, "sensors");
 	if (IS_ERR(sensors_class))
 		return PTR_ERR(sensors_class);
-	sensors_class->dev_attrs = sensors_class_attrs;
+	sensors_class->dev_groups =  sensor_groups;
 	return 0;
 }
 
