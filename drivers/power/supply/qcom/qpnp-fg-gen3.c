@@ -2853,7 +2853,7 @@ static void status_change_work(struct work_struct *work)
 	}
 
 	chip->charge_done = prop.intval;
-	pr_info("chip->charge_done=%d\n", chip->charge_done);
+	pr_debug("chip->charge_done=%d\n", chip->charge_done);
 	fg_cycle_counter_update(chip);
 	fg_cap_learning_update(chip);
 
@@ -4945,7 +4945,7 @@ static void battery_health_data_reset(void)
 }
 
 extern int batt_health_csc_backup(void);
-static int resotre_bat_health(void)
+static int restore_bat_health(void)
 {
 	int i = 0, rc = 0;
 
@@ -5125,7 +5125,7 @@ static void update_battery_health(struct fg_chip *chip)
 		return;
 
 	if (g_bathealth_initialized != true) {
-		resotre_bat_health();
+		restore_bat_health();
 		return;
 	}
 
