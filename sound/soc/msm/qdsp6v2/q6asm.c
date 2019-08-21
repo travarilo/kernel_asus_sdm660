@@ -1766,8 +1766,8 @@ static int32_t q6asm_srvc_callback(struct apr_client_data *data, void *priv)
 				dev_vdbg(ac->dev, "%s: Payload = [0x%x] status[0x%x]\n",
 					__func__, payload[0], payload[1]);
 			else
-				dev_vdbg(ac->dev, "%s: Payload size of %d is less than expected.\n",
-					__func__, data->payload_size);
+				dev_vdbg(ac->dev, "%s:%d: payload size of %d is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
 			break;
 		default:
 			pr_debug("%s: command[0x%x] not expecting rsp\n",
@@ -1800,8 +1800,8 @@ static int32_t q6asm_srvc_callback(struct apr_client_data *data, void *priv)
 			pr_debug("%s: PL#0[0x%x]PL#1 [0x%x]\n",
 				__func__, payload[0], payload[1]);
 		else
-			pr_debug("%s: Payload size of %d is less than expected.\n",
-				__func__, data->payload_size);
+			pr_debug("%s:%d: payload size of %d is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 
 		spin_lock_irqsave(&port->dsp_lock, dsp_flags);
 		if (atomic_cmpxchg(&ac->mem_state, -1, 0) == -1)
@@ -1815,8 +1815,8 @@ static int32_t q6asm_srvc_callback(struct apr_client_data *data, void *priv)
 			pr_debug("%s: command[0x%x]success [0x%x]\n",
 				__func__, payload[0], payload[1]);
 		else
-			pr_debug("%s: Payload size of %d is less than expected.\n",
-				__func__, data->payload_size);
+			pr_debug("%s:%d: payload size of %d is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 	}
 	if (ac->cb)
 		ac->cb(data->opcode, data->token,
@@ -1974,8 +1974,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 			dev_vdbg(ac->dev, "%s: Payload = [0x%x] status[0x%x] opcode 0x%x\n",
 				__func__, payload[0], payload[1], data->opcode);
 		else
-			dev_vdbg(ac->dev, "%s: Payload size of %d is less than expected.\n",
-				__func__, data->payload_size);
+			dev_vdbg(ac->dev, "%s:%d: payload size of %d is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 	}
 	if (data->opcode == APR_BASIC_RSP_RESULT) {
 		switch (payload[0]) {
@@ -2052,8 +2052,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					flags);
 				return 0;
 			} else {
-				pr_err("%s: payload size of %x is less than expected.\n",
-					__func__, data->payload_size);
+				pr_err("%s:%d: payload size of %x is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
 			}
 			if ((is_adsp_reg_event(payload[0]) >= 0) ||
 			    (payload[0] == ASM_STREAM_CMD_SET_PP_PARAMS_V2) ||
@@ -2104,8 +2104,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				pr_debug("%s: Watermark opcode[0x%x] status[0x%x]",
 					__func__, payload[0], payload[1]);
 			else
-				pr_err("%s: payload size of %x is less than expected.\n",
-					__func__, data->payload_size);
+				pr_err("%s:%d: payload size of %x is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
 			break;
 		}
 		case ASM_STREAM_CMD_GET_PP_PARAMS_V2:
@@ -2126,8 +2126,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 							data->payload_size);
 				}
 			} else {
-				pr_err("%s: payload size of %x is less than expected.\n",
-					__func__, data->payload_size);
+				pr_err("%s:%d: payload size of %x is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
 			}
 			break;
 		case ASM_STREAM_CMD_REGISTER_PP_EVENTS:
@@ -2142,8 +2142,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				atomic_set(&ac->cmd_state_pp, payload[1]);
 				wake_up(&ac->cmd_wait);
 			} else {
-				pr_err("%s: payload size of %x is less than expected.\n",
-					__func__, data->payload_size);
+				pr_err("%s:%d: payload size of %x is less than expected.\n",
+					__func__, __LINE__, data->payload_size);
 			}
 			break;
 		default:
@@ -2165,8 +2165,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					__func__, payload[0], payload[1],
 					data->token);
 		else
-			dev_err(ac->dev, "%s: payload size of %x is less than expected.\n",
-				__func__, data->payload_size);
+			dev_err(ac->dev, "%s:%d: payload size of %x is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 		if (ac->io_mode & SYNC_IO_MODE) {
 			if (port->buf == NULL) {
 				pr_err("%s: Unexpected Write Done\n",
@@ -2236,8 +2236,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 							payload[2],
 							payload[3]);
 				else
-					pr_err("%s: payload size of %x is less than expected.\n",
-						__func__,
+					pr_err("%s:%d: payload size of %x is less than expected.\n",
+						__func__, __LINE__,
 						data->payload_size);
 
 				if (data->payload_size >=
@@ -2253,8 +2253,9 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 							 payload[4+i]);
 					}
 				} else {
-					pr_err("%s: payload size of %x is less than expected.\n",
-						__func__, data->payload_size);
+					pr_err("%s:%d: payload size of %x is less than expected.\n",
+						__func__, __LINE__,
+						data->payload_size);
 				}
 				pr_debug("%s: callback size in ints = %i\n",
 					 __func__,
@@ -2359,8 +2360,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				(uint64_t)(((uint64_t)payload[2] << 32) |
 					payload[1]);
 		} else {
-			dev_err(ac->dev, "%s: payload size of %x is less than expected.n",
-				__func__, data->payload_size);
+			dev_err(ac->dev, "%s:%d: payload size of %x is less than expected.n",
+				__func__, __LINE__, data->payload_size);
 		}
 		if (atomic_cmpxchg(&ac->time_flag, 1, 0))
 			wake_up(&ac->time_wait);
@@ -2377,8 +2378,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 					payload[0], payload[1], payload[2],
 					payload[3]);
 		else
-			pr_debug("%s: payload size of %x is less than expected.\n",
-				__func__, data->payload_size);
+			pr_debug("%s:%d: payload size of %x is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 		break;
 	case ASM_SESSION_CMDRSP_GET_MTMX_STRTR_PARAMS_V2:
 		q6asm_process_mtmx_get_param_rsp(ac, (void *) payload);
@@ -2390,8 +2391,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 			pr_debug("%s: ASM_STREAM_EVENT payload[0][0x%x] payload[1][0x%x]",
 					 __func__, payload[0], payload[1]);
 		else
-			pr_debug("%s: payload size of %x is less than expected.\n",
-				__func__, data->payload_size);
+			pr_debug("%s:%d: payload size of %x is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 		i = is_adsp_raise_event(data->opcode);
 		if (i < 0) {
 			spin_unlock_irqrestore(
@@ -2438,8 +2439,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				 payload[2],
 				 payload[1]);
 		else
-			pr_err("%s: payload size of %x is less than expected.\n",
-				__func__, data->payload_size);
+			pr_err("%s:%d: payload size of %x is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 		wake_up(&ac->cmd_wait);
 		break;
 	case ASM_SESSION_CMDRSP_GET_PATH_DELAY_V2:
@@ -2449,8 +2450,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 				payload[0], payload[2],
 				payload[1]);
 		else
-			pr_err("%s: payload size of %x is less than expected.\n",
-				__func__, data->payload_size);
+			pr_err("%s:%d: payload size of %x is less than expected.\n",
+				__func__, __LINE__, data->payload_size);
 		if (payload[0] == 0 &&
 			data->payload_size >=
 				2 * sizeof(uint32_t)) {
