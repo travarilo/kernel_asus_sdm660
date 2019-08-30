@@ -108,7 +108,7 @@ void sync_timeline_signal(struct sync_timeline *obj)
 	LIST_HEAD(signaled_pts);
 	struct sync_pt *pt, *next;
 
-	trace_sync_timeline(obj);
+//	trace_sync_timeline(obj);
 
 	spin_lock_irqsave(&obj->child_list_lock, flags);
 
@@ -372,20 +372,20 @@ EXPORT_SYMBOL(sync_fence_cancel_async);
 int sync_fence_wait(struct sync_fence *fence, long timeout)
 {
 	long ret;
-	int i;
+//	int i;
 
 	if (timeout < 0)
 		timeout = MAX_SCHEDULE_TIMEOUT;
 	else
 		timeout = msecs_to_jiffies(timeout);
 
-	trace_sync_wait(fence, 1);
-	for (i = 0; i < fence->num_fences; ++i)
-		trace_sync_pt(fence->cbs[i].sync_pt);
+//	trace_sync_wait(fence, 1);
+//	for (i = 0; i < fence->num_fences; ++i)
+//		trace_sync_pt(fence->cbs[i].sync_pt);
 	ret = wait_event_interruptible_timeout(fence->wq,
 					       atomic_read(&fence->status) <= 0,
 					       timeout);
-	trace_sync_wait(fence, 0);
+//	trace_sync_wait(fence, 0);
 
 	if (ret < 0) {
 		return ret;
@@ -660,7 +660,8 @@ static int sync_fill_pt_info(struct fence *fence, void *data, int size)
 static long sync_fence_ioctl_fence_info(struct sync_fence *fence,
 					unsigned long arg)
 {
-	struct sync_fence_info_data *data;
+	u8 data_buf[4096] __aligned(sizeof(long));
+	struct sync_fence_info_data *data = (typeof(data))data_buf;
 	__u32 size;
 	__u32 len = 0;
 	int ret, i;
@@ -673,10 +674,6 @@ static long sync_fence_ioctl_fence_info(struct sync_fence *fence,
 
 	if (size > 4096)
 		size = 4096;
-
-	data = kzalloc(size, GFP_KERNEL);
-	if (data == NULL)
-		return -ENOMEM;
 
 	strlcpy(data->name, fence->name, sizeof(data->name));
 	data->status = atomic_read(&fence->status);
@@ -704,7 +701,6 @@ static long sync_fence_ioctl_fence_info(struct sync_fence *fence,
 		ret = 0;
 
 out:
-	kfree(data);
 
 	return ret;
 }

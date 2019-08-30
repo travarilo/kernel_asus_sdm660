@@ -254,7 +254,8 @@ static int mdss_fb_notify_update(struct msm_fb_data_type *mfd,
 		mfd->update.ref_count++;
 		mutex_unlock(&mfd->update.lock);
 		ret = wait_for_completion_interruptible_timeout(
-						&mfd->update.comp, 4 * HZ);
+						&mfd->update.comp,
+						msecs_to_jiffies(4000));
 		mutex_lock(&mfd->update.lock);
 		mfd->update.ref_count--;
 		mutex_unlock(&mfd->update.lock);
@@ -277,7 +278,8 @@ static int mdss_fb_notify_update(struct msm_fb_data_type *mfd,
 		mfd->no_update.ref_count++;
 		mutex_unlock(&mfd->no_update.lock);
 		ret = wait_for_completion_interruptible_timeout(
-						&mfd->no_update.comp, 4 * HZ);
+						&mfd->no_update.comp,
+						msecs_to_jiffies(4000));
 		mutex_lock(&mfd->no_update.lock);
 		mfd->no_update.ref_count--;
 		mutex_unlock(&mfd->no_update.lock);
@@ -286,7 +288,8 @@ static int mdss_fb_notify_update(struct msm_fb_data_type *mfd,
 		if (mdss_fb_is_power_on(mfd)) {
 			reinit_completion(&mfd->power_off_comp);
 			ret = wait_for_completion_interruptible_timeout(
-						&mfd->power_off_comp, 1 * HZ);
+						&mfd->power_off_comp,
+						msecs_to_jiffies(1000));
 		}
 	}
 
@@ -3523,7 +3526,7 @@ int mdss_fb_atomic_commit(struct fb_info *info,
 
 	commit_v1 = &commit->commit_v1;
 	if (commit_v1->flags & MDP_VALIDATE_LAYER) {
-		ret = mdss_fb_wait_for_kickoff(mfd);
+		ret = mdss_fb_pan_idle(mfd);
 		if (ret) {
 			pr_err("wait for kickoff failed\n");
 		} else {
@@ -4650,96 +4653,63 @@ err:
 }
 
 static int __mdss_fb_copy_destscaler_data(struct fb_info *info,
-		struct mdp_layer_commit *commit)
+		struct mdp_layer_commit *commit,
+		struct mdp_destination_scaler_data *ds_data,
+		struct mdp_scale_data_v2 *scale_data)
 {
 	int    i = 0;
 	int    ret = 0;
-	u32    data_size;
 	struct mdp_destination_scaler_data __user *ds_data_user;
-	struct mdp_destination_scaler_data *ds_data = NULL;
 	void __user *scale_data_user;
-	struct mdp_scale_data_v2 *scale_data = NULL;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
 	struct mdss_data_type *mdata;
 
 	if (!mfd || !mfd->mdp.private1) {
 		pr_err("mfd is NULL or operation not permitted\n");
-		ret = -EINVAL;
-		goto err;
+		return -EINVAL;
 	}
 
 	mdata = mfd_to_mdata(mfd);
 	if (!mdata) {
 		pr_err("mdata is NULL or not initialized\n");
-		ret = -EINVAL;
-		goto err;
+		return -EINVAL;
 	}
 
 	if (commit->commit_v1.dest_scaler_cnt >
 			mdata->scaler_off->ndest_scalers) {
 		pr_err("Commit destination scaler cnt larger than HW setting, commit cnt=%d\n",
 				commit->commit_v1.dest_scaler_cnt);
-		ret = -EINVAL;
-		goto err;
+		return -EINVAL;
 	}
 
 	ds_data_user = (struct mdp_destination_scaler_data *)
 		commit->commit_v1.dest_scaler;
-	data_size = commit->commit_v1.dest_scaler_cnt *
-		sizeof(struct mdp_destination_scaler_data);
-	ds_data = kzalloc(data_size, GFP_KERNEL);
-	if (!ds_data) {
-		ret = -ENOMEM;
-		goto err;
-	}
-
-	ret = copy_from_user(ds_data, ds_data_user, data_size);
+	ret = copy_from_user(ds_data, ds_data_user,
+		commit->commit_v1.dest_scaler_cnt * sizeof(*ds_data));
 	if (ret) {
 		pr_err("dest scaler data copy from user failed\n");
-		goto err;
+		return ret;
 	}
 
 	commit->commit_v1.dest_scaler = ds_data;
 
 	for (i = 0; i < commit->commit_v1.dest_scaler_cnt; i++) {
-		scale_data = NULL;
+		if (!ds_data[i].scale)
+			continue;
 
-		if (ds_data[i].scale) {
-			scale_data_user = to_user_ptr(ds_data[i].scale);
-			data_size = sizeof(struct mdp_scale_data_v2);
-
-			scale_data = kzalloc(data_size, GFP_KERNEL);
-			if (!scale_data) {
-				ds_data[i].scale = 0;
-				ret = -ENOMEM;
-				goto err;
-			}
-
-			ds_data[i].scale = to_user_u64(scale_data);
-		}
-
-		if (scale_data && (ds_data[i].flags &
-					(MDP_DESTSCALER_SCALE_UPDATE |
-					MDP_DESTSCALER_ENHANCER_UPDATE))) {
-			ret = copy_from_user(scale_data, scale_data_user,
-					data_size);
+		scale_data_user = to_user_ptr(ds_data[i].scale);
+		ds_data[i].scale = to_user_u64(&scale_data[i]);
+		if (ds_data[i].flags & (MDP_DESTSCALER_SCALE_UPDATE |
+					MDP_DESTSCALER_ENHANCER_UPDATE)) {
+			ret = copy_from_user(scale_data + i, scale_data_user,
+					     sizeof(*scale_data));
 			if (ret) {
 				pr_err("scale data copy from user failed\n");
-				kfree(scale_data);
-				goto err;
+				return ret;
 			}
+		} else {
+			memset(scale_data + i, 0, sizeof(*scale_data));
 		}
-	}
-
-	return ret;
-
-err:
-	if (ds_data) {
-		for (i--; i >= 0; i--) {
-			scale_data = to_user_ptr(ds_data[i].scale);
-			kfree(scale_data);
-		}
-		kfree(ds_data);
 	}
 
 	return ret;
@@ -4751,14 +4721,15 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 	int ret, i = 0, j = 0, rc;
 	struct mdp_layer_commit  commit;
 	u32 buffer_size, layer_count;
-	struct mdp_input_layer *layer, *layer_list = NULL;
+	struct mdp_input_layer *layer, layer_list[MAX_LAYER_COUNT];
 	struct mdp_input_layer __user *input_layer_list;
-	struct mdp_output_layer *output_layer = NULL;
+	struct mdp_output_layer output_layer;
 	struct mdp_output_layer __user *output_layer_user;
-	struct mdp_destination_scaler_data *ds_data = NULL;
 	struct mdp_destination_scaler_data __user *ds_data_user;
 	struct msm_fb_data_type *mfd;
 	struct mdss_overlay_private *mdp5_data = NULL;
+	struct mdp_destination_scaler_data ds_data[2];
+	struct mdp_scale_data_v2 scale_data[2];
 
 	ret = copy_from_user(&commit, argp, sizeof(struct mdp_layer_commit));
 	if (ret) {
@@ -4791,20 +4762,13 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 
 	output_layer_user = commit.commit_v1.output_layer;
 	if (output_layer_user) {
-		buffer_size = sizeof(struct mdp_output_layer);
-		output_layer = kzalloc(buffer_size, GFP_KERNEL);
-		if (!output_layer) {
-			pr_err("unable to allocate memory for output layer\n");
-			return -ENOMEM;
-		}
-
-		ret = copy_from_user(output_layer,
-			output_layer_user, buffer_size);
+		ret = copy_from_user(&output_layer, output_layer_user,
+				     sizeof(output_layer));
 		if (ret) {
 			pr_err("layer list copy from user failed\n");
 			goto err;
 		}
-		commit.commit_v1.output_layer = output_layer;
+		commit.commit_v1.output_layer = &output_layer;
 	}
 
 	layer_count = commit.commit_v1.input_layer_cnt;
@@ -4816,13 +4780,6 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 		goto err;
 	} else if (layer_count) {
 		buffer_size = sizeof(struct mdp_input_layer) * layer_count;
-		layer_list = kzalloc(buffer_size, GFP_KERNEL);
-		if (!layer_list) {
-			pr_err("unable to allocate memory for layers\n");
-			ret = -ENOMEM;
-			goto err;
-		}
-
 		ret = copy_from_user(layer_list, input_layer_list, buffer_size);
 		if (ret) {
 			pr_err("layer list copy from user failed\n");
@@ -4863,12 +4820,12 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 	ds_data_user = commit.commit_v1.dest_scaler;
 	if ((ds_data_user) &&
 		(commit.commit_v1.dest_scaler_cnt)) {
-		ret = __mdss_fb_copy_destscaler_data(info, &commit);
+		ret = __mdss_fb_copy_destscaler_data(info, &commit, ds_data,
+						     scale_data);
 		if (ret) {
 			pr_err("copy dest scaler failed\n");
 			goto err;
 		}
-		ds_data = commit.commit_v1.dest_scaler;
 	}
 
 	ATRACE_BEGIN("ATOMIC_COMMIT");
@@ -4898,7 +4855,7 @@ static int mdss_fb_atomic_commit_ioctl(struct fb_info *info,
 
 	if (output_layer_user) {
 		rc = copy_to_user(&output_layer_user->buffer.fence,
-			&output_layer->buffer.fence,
+			&output_layer.buffer.fence,
 			sizeof(int));
 
 		if (rc)
@@ -4910,13 +4867,6 @@ err:
 		kfree(layer_list[i].scale);
 		layer_list[i].scale = NULL;
 		mdss_mdp_free_layer_pp_info(&layer_list[i]);
-	}
-	kfree(layer_list);
-	kfree(output_layer);
-	if (ds_data) {
-		for (i = 0; i < commit.commit_v1.dest_scaler_cnt; i++)
-			kfree(to_user_ptr(ds_data[i].scale));
-		kfree(ds_data);
 	}
 
 	return ret;

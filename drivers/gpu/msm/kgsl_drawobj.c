@@ -160,8 +160,8 @@ static void drawobj_sync_func(struct kgsl_device *device,
 {
 	struct kgsl_drawobj_sync_event *event = priv;
 
-	trace_syncpoint_timestamp_expire(event->syncobj,
-		event->context, event->timestamp);
+//	trace_syncpoint_timestamp_expire(event->syncobj,
+//		event->context, event->timestamp);
 
 	drawobj_sync_expire(device, event);
 	kgsl_context_put(event->context);
@@ -302,8 +302,8 @@ static void drawobj_sync_fence_func(void *priv)
 
 	drawobj_sync_expire(event->device, event);
 
-	trace_syncpoint_fence_expire(event->syncobj,
-		event->handle ? event->handle->name : "unknown");
+//	trace_syncpoint_fence_expire(event->syncobj,
+//		event->handle ? event->handle->name : "unknown");
 
 	spin_lock_irqsave(&event->handle_lock, flags);
 
@@ -355,7 +355,7 @@ static int drawobj_add_sync_fence(struct kgsl_device *device,
 	spin_lock_init(&event->handle_lock);
 	set_bit(event->id, &syncobj->pending);
 
-	trace_syncpoint_fence(syncobj, fence->name);
+//	trace_syncpoint_fence(syncobj, fence->name);
 
 	spin_lock_irqsave(&event->handle_lock, flags);
 
@@ -377,8 +377,8 @@ static int drawobj_add_sync_fence(struct kgsl_device *device,
 		 * the fence is already signaled or there is
 		 * a failure in registering the fence waiter.
 		 */
-		trace_syncpoint_fence_expire(syncobj, (ret < 0) ?
-				"error" : fence->name);
+//		trace_syncpoint_fence_expire(syncobj, (ret < 0) ?
+//				"error" : fence->name);
 	} else {
 		spin_unlock_irqrestore(&event->handle_lock, flags);
 	}
@@ -450,9 +450,9 @@ static int drawobj_add_sync_timestamp(struct kgsl_device *device,
 	if (ret) {
 		clear_bit(event->id, &syncobj->pending);
 		drawobj_put(drawobj);
-	} else {
-		trace_syncpoint_timestamp(syncobj, context, sync->timestamp);
-	}
+	} // else {
+//		trace_syncpoint_timestamp(syncobj, context, sync->timestamp);
+//	}
 
 done:
 	if (ret)
@@ -476,20 +476,24 @@ int kgsl_drawobj_sync_add_sync(struct kgsl_device *device,
 	struct kgsl_cmd_syncpoint *sync)
 {
 	void *priv;
-	int ret, psize;
+	int psize;
 	struct kgsl_drawobj *drawobj = DRAWOBJ(syncobj);
 	int (*func)(struct kgsl_device *device,
 			struct kgsl_drawobj_sync *syncobj,
 			void *priv);
+	struct kgsl_cmd_syncpoint_timestamp sync_timestamp;
+	struct kgsl_cmd_syncpoint_fence sync_fence;
 
 	switch (sync->type) {
 	case KGSL_CMD_SYNCPOINT_TYPE_TIMESTAMP:
 		psize = sizeof(struct kgsl_cmd_syncpoint_timestamp);
 		func = drawobj_add_sync_timestamp;
+		priv = &sync_timestamp;
 		break;
 	case KGSL_CMD_SYNCPOINT_TYPE_FENCE:
 		psize = sizeof(struct kgsl_cmd_syncpoint_fence);
 		func = drawobj_add_sync_fence;
+		priv = &sync_fence;
 		break;
 	default:
 		KGSL_DRV_ERR(device,
@@ -505,19 +509,10 @@ int kgsl_drawobj_sync_add_sync(struct kgsl_device *device,
 		return -EINVAL;
 	}
 
-	priv = kzalloc(sync->size, GFP_KERNEL);
-	if (priv == NULL)
-		return -ENOMEM;
-
-	if (copy_from_user(priv, sync->priv, sync->size)) {
-		kfree(priv);
+	if (copy_from_user(priv, sync->priv, sync->size))
 		return -EFAULT;
-	}
 
-	ret = func(device, syncobj, priv);
-	kfree(priv);
-
-	return ret;
+	return func(device, syncobj, priv);
 }
 
 static void add_profiling_buffer(struct kgsl_device *device,

@@ -770,6 +770,7 @@ static int parse_dt_xlog_dump_list(const u32 *arr, int count,
 	u32 len;
 	int i, total_names, total_xin_ids, rc;
 	u32 *offsets = NULL;
+	struct property *pp;
 
 	/* Get the property with the name of the ranges */
 	total_names = of_property_count_strings(pdev->dev.of_node,
@@ -779,8 +780,8 @@ static int parse_dt_xlog_dump_list(const u32 *arr, int count,
 		total_names = 0;
 	}
 
-	of_find_property(pdev->dev.of_node, xin_prop, &total_xin_ids);
-	if (total_xin_ids > 0) {
+	pp = of_find_property(pdev->dev.of_node, xin_prop, &total_xin_ids);
+	if (pp && total_xin_ids > 0) {
 		total_xin_ids /= sizeof(u32);
 		offsets = kcalloc(total_xin_ids, sizeof(u32), GFP_KERNEL);
 		if (offsets) {
@@ -1866,7 +1867,7 @@ void mdss_misr_crc_collect(struct mdss_data_type *mdata, int block_id,
 
 	pr_debug("$$ Vsync Count = %d, CRC=0x%x Indx = %d$$\n",
 		vsync_count, crc, map->crc_index);
-	trace_mdp_misr_crc(block_id, vsync_count, crc);
+//	trace_mdp_misr_crc(block_id, vsync_count, crc);
 
 	if (MAX_VSYNC_COUNT == vsync_count) {
 		pr_debug("RESET vsync_count(%d)\n", vsync_count);

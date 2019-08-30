@@ -732,7 +732,7 @@ int mdss_bus_scale_set_quota(int client, u64 ab_quota, u64 ib_quota)
 
 	mdss_res->ab[client] = ab_quota;
 	mdss_res->ib[client] = ib_quota;
-	trace_mdp_perf_update_bus(client, ab_quota, ib_quota);
+//	trace_mdp_perf_update_bus(client, ab_quota, ib_quota);
 
 	for (i = 0; i < MDSS_MAX_BUS_CLIENTS; i++) {
 		if (i == MDSS_MDP_NRT) {
@@ -2391,6 +2391,7 @@ static u32 mdss_mdp_scaler_init(struct mdss_data_type *mdata,
 			return -EINVAL;
 		}
 		mdata->scaler_off->ndest_scalers = len/sizeof(u32);
+		BUG_ON(mdata->scaler_off->ndest_scalers > 2);
 
 		mdata->scaler_off->dest_scaler_off =
 			devm_kzalloc(dev, sizeof(u32) *
@@ -5035,8 +5036,8 @@ void mdss_mdp_set_ot_limit(struct mdss_mdp_set_ot_params *params)
 	if (ot_lim == 0)
 		goto exit;
 
-	trace_mdp_perf_set_ot(params->num, params->xin_id, ot_lim,
-		is_vbif_nrt);
+//	trace_mdp_perf_set_ot(params->num, params->xin_id, ot_lim,
+//		is_vbif_nrt);
 
 	mutex_lock(&mdata->reg_lock);
 
