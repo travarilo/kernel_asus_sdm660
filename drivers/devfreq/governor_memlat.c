@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -239,13 +239,17 @@ static int devfreq_memlat_get_freq(struct devfreq *df,
 		if (hw->core_stats[i].mem_count)
 			ratio /= hw->core_stats[i].mem_count;
 
-		trace_memlat_dev_meas(dev_name(df->dev.parent),
-					hw->core_stats[i].id,
-					hw->core_stats[i].inst_count,
-					hw->core_stats[i].mem_count,
-					hw->core_stats[i].freq, ratio);
+//		trace_memlat_dev_meas(dev_name(df->dev.parent),
+//					hw->core_stats[i].id,
+//					hw->core_stats[i].inst_count,
+//					hw->core_stats[i].mem_count,
+//					hw->core_stats[i].freq, ratio);
 
-		if (ratio && ratio <= node->ratio_ceil
+		if (!hw->core_stats[i].inst_count
+		    || !hw->core_stats[i].freq)
+			continue;
+
+		if (ratio <= node->ratio_ceil
 		    && hw->core_stats[i].freq > max_freq) {
 			lat_dev = i;
 			max_freq = hw->core_stats[i].freq;
@@ -254,12 +258,12 @@ static int devfreq_memlat_get_freq(struct devfreq *df,
 
 	if (max_freq) {
 		max_freq = core_to_dev_freq(node, max_freq);
-		trace_memlat_dev_update(dev_name(df->dev.parent),
-					hw->core_stats[lat_dev].id,
-					hw->core_stats[lat_dev].inst_count,
-					hw->core_stats[lat_dev].mem_count,
-					hw->core_stats[lat_dev].freq,
-					max_freq);
+//		trace_memlat_dev_update(dev_name(df->dev.parent),
+//					hw->core_stats[lat_dev].id,
+//					hw->core_stats[lat_dev].inst_count,
+//					hw->core_stats[lat_dev].mem_count,
+//					hw->core_stats[lat_dev].freq,
+//					max_freq);
 	}
 
 	*freq = max_freq;

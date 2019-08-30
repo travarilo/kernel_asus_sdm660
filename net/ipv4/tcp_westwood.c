@@ -43,8 +43,8 @@ struct westwood {
 };
 
 /* TCP Westwood functions and constants */
-#define TCP_WESTWOOD_RTT_MIN   (HZ/20)	/* 50ms */
-#define TCP_WESTWOOD_INIT_RTT  (20*HZ)	/* maybe too conservative?! */
+#define TCP_WESTWOOD_RTT_MIN   (HZ/16)	/* 50ms */
+#define TCP_WESTWOOD_INIT_RTT  (16*HZ)	/* maybe too conservative?! */
 
 /*
  * @tcp_westwood_create
@@ -264,8 +264,8 @@ static size_t tcp_westwood_info(struct sock *sk, u32 ext, int *attr,
 	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
 		info->vegas.tcpv_enabled = 1;
 		info->vegas.tcpv_rttcnt	= 0;
-		info->vegas.tcpv_rtt	= jiffies_to_usecs(ca->rtt),
-		info->vegas.tcpv_minrtt	= jiffies_to_usecs(ca->rtt_min),
+		info->vegas.tcpv_rtt	= jiffies_to_usecs(ca->rtt);
+		info->vegas.tcpv_minrtt	= jiffies_to_usecs(ca->rtt_min);
 
 		*attr = INET_DIAG_VEGASINFO;
 		return sizeof(struct tcpvegas_info);

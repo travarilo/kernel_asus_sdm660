@@ -928,7 +928,7 @@ static int ext4_mb_init_cache(struct page *page, char *incore, gfp_t gfp)
 			BUG_ON(incore == NULL);
 			mb_debug(1, "put buddy for group %u in page %lu/%x\n",
 				group, page->index, i * blocksize);
-			trace_ext4_mb_buddy_bitmap_load(sb, group);
+//			trace_ext4_mb_buddy_bitmap_load(sb, group);
 			grinfo = ext4_get_group_info(sb, group);
 			grinfo->bb_fragments = 0;
 			memset(grinfo->bb_counters, 0,
@@ -948,7 +948,7 @@ static int ext4_mb_init_cache(struct page *page, char *incore, gfp_t gfp)
 			BUG_ON(incore != NULL);
 			mb_debug(1, "put bitmap for group %u in page %lu/%x\n",
 				group, page->index, i * blocksize);
-			trace_ext4_mb_bitmap_load(sb, group);
+//			trace_ext4_mb_bitmap_load(sb, group);
 
 			/* see comments in ext4_mb_put_pa() */
 			ext4_lock_group(sb, group);
@@ -2783,8 +2783,8 @@ static inline int ext4_issue_discard(struct super_block *sb,
 	discard_block = (EXT4_C2B(EXT4_SB(sb), cluster) +
 			 ext4_group_first_block_no(sb, block_group));
 	count = EXT4_C2B(EXT4_SB(sb), count);
-	trace_ext4_discard_blocks(sb,
-			(unsigned long long) discard_block, count);
+//	trace_ext4_discard_blocks(sb,
+//			(unsigned long long) discard_block, count);
 	return sb_issue_discard(sb, discard_block, count, GFP_NOFS, flags);
 }
 
@@ -2860,18 +2860,10 @@ int __init ext4_init_mballoc(void)
 	if (ext4_pspace_cachep == NULL)
 		return -ENOMEM;
 
-	ext4_ac_cachep = KMEM_CACHE(ext4_allocation_context,
-				    SLAB_RECLAIM_ACCOUNT);
-	if (ext4_ac_cachep == NULL) {
-		kmem_cache_destroy(ext4_pspace_cachep);
-		return -ENOMEM;
-	}
-
 	ext4_free_data_cachep = KMEM_CACHE(ext4_free_data,
 					   SLAB_RECLAIM_ACCOUNT);
 	if (ext4_free_data_cachep == NULL) {
 		kmem_cache_destroy(ext4_pspace_cachep);
-		kmem_cache_destroy(ext4_ac_cachep);
 		return -ENOMEM;
 	}
 	return 0;
@@ -3245,10 +3237,10 @@ static void ext4_mb_collect_stats(struct ext4_allocation_context *ac)
 			atomic_inc(&sbi->s_bal_breaks);
 	}
 
-	if (ac->ac_op == EXT4_MB_HISTORY_ALLOC)
+/*	if (ac->ac_op == EXT4_MB_HISTORY_ALLOC)
 		trace_ext4_mballoc_alloc(ac);
 	else
-		trace_ext4_mballoc_prealloc(ac);
+		trace_ext4_mballoc_prealloc(ac); */
 }
 
 /*
@@ -3666,7 +3658,7 @@ ext4_mb_new_inode_pa(struct ext4_allocation_context *ac)
 
 	mb_debug(1, "new inode pa %p: %llu/%u for %u\n", pa,
 			pa->pa_pstart, pa->pa_len, pa->pa_lstart);
-	trace_ext4_mb_new_inode_pa(ac, pa);
+//	trace_ext4_mb_new_inode_pa(ac, pa);
 
 	ext4_mb_use_inode_pa(ac, pa);
 	atomic_add(pa->pa_free, &sbi->s_mb_preallocated);
@@ -3726,7 +3718,7 @@ ext4_mb_new_group_pa(struct ext4_allocation_context *ac)
 
 	mb_debug(1, "new group pa %p: %llu/%u for %u\n", pa,
 			pa->pa_pstart, pa->pa_len, pa->pa_lstart);
-	trace_ext4_mb_new_group_pa(ac, pa);
+//	trace_ext4_mb_new_group_pa(ac, pa);
 
 	ext4_mb_use_group_pa(ac, pa);
 	atomic_add(pa->pa_free, &EXT4_SB(sb)->s_mb_preallocated);
@@ -3798,10 +3790,10 @@ ext4_mb_release_inode_pa(struct ext4_buddy *e4b, struct buffer_head *bitmap_bh,
 			 (unsigned) next - bit, (unsigned) group);
 		free += next - bit;
 
-		trace_ext4_mballoc_discard(sb, NULL, group, bit, next - bit);
-		trace_ext4_mb_release_inode_pa(pa, (grp_blk_start +
-						    EXT4_C2B(sbi, bit)),
-					       next - bit);
+//		trace_ext4_mballoc_discard(sb, NULL, group, bit, next - bit);
+//		trace_ext4_mb_release_inode_pa(pa, (grp_blk_start +
+//						    EXT4_C2B(sbi, bit)),
+//					       next - bit);
 		mb_free_blocks(pa->pa_inode, e4b, bit, next - bit);
 		bit = next + 1;
 	}
@@ -3831,13 +3823,13 @@ ext4_mb_release_group_pa(struct ext4_buddy *e4b,
 	ext4_group_t group;
 	ext4_grpblk_t bit;
 
-	trace_ext4_mb_release_group_pa(sb, pa);
+//	trace_ext4_mb_release_group_pa(sb, pa);
 	BUG_ON(pa->pa_deleted == 0);
 	ext4_get_group_no_and_offset(sb, pa->pa_pstart, &group, &bit);
 	BUG_ON(group != e4b->bd_group && pa->pa_len != 0);
 	mb_free_blocks(pa->pa_inode, e4b, bit, pa->pa_len);
 	atomic_add(pa->pa_len, &EXT4_SB(sb)->s_mb_discarded);
-	trace_ext4_mballoc_discard(sb, NULL, group, bit, pa->pa_len);
+//	trace_ext4_mballoc_discard(sb, NULL, group, bit, pa->pa_len);
 
 	return 0;
 }
@@ -3980,7 +3972,7 @@ void ext4_discard_preallocations(struct inode *inode)
 	}
 
 	mb_debug(1, "discard preallocation for inode %lu\n", inode->i_ino);
-	trace_ext4_discard_preallocations(inode);
+//	trace_ext4_discard_preallocations(inode);
 
 	INIT_LIST_HEAD(&list);
 
@@ -4423,7 +4415,7 @@ static int ext4_mb_discard_preallocations(struct super_block *sb, int needed)
 	int ret;
 	int freed = 0;
 
-	trace_ext4_mb_discard_preallocations(sb, needed);
+//	trace_ext4_mb_discard_preallocations(sb, needed);
 	for (i = 0; i < ngroups && needed > 0; i++) {
 		ret = ext4_mb_discard_group_preallocations(sb, i, needed);
 		freed += ret;
@@ -4442,7 +4434,7 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 				struct ext4_allocation_request *ar, int *errp)
 {
 	int freed;
-	struct ext4_allocation_context *ac = NULL;
+	struct ext4_allocation_context ac;
 	struct ext4_sb_info *sbi;
 	struct super_block *sb;
 	ext4_fsblk_t block = 0;
@@ -4453,7 +4445,7 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 	sb = ar->inode->i_sb;
 	sbi = EXT4_SB(sb);
 
-	trace_ext4_request_blocks(ar);
+//	trace_ext4_request_blocks(ar);
 
 	/* Allow to use superuser reservation for quota file */
 	if (IS_NOQUOTA(ar->inode))
@@ -4495,52 +4487,46 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 		}
 	}
 
-	ac = kmem_cache_zalloc(ext4_ac_cachep, GFP_NOFS);
-	if (!ac) {
-		ar->len = 0;
-		*errp = -ENOMEM;
-		goto out;
-	}
-
-	*errp = ext4_mb_initialize_context(ac, ar);
+	memset(&ac, 0, sizeof(ac));
+	*errp = ext4_mb_initialize_context(&ac, ar);
 	if (*errp) {
 		ar->len = 0;
 		goto out;
 	}
 
-	ac->ac_op = EXT4_MB_HISTORY_PREALLOC;
-	if (!ext4_mb_use_preallocated(ac)) {
-		ac->ac_op = EXT4_MB_HISTORY_ALLOC;
-		ext4_mb_normalize_request(ac, ar);
+	ac.ac_op = EXT4_MB_HISTORY_PREALLOC;
+	if (!ext4_mb_use_preallocated(&ac)) {
+		ac.ac_op = EXT4_MB_HISTORY_ALLOC;
+		ext4_mb_normalize_request(&ac, ar);
 repeat:
 		/* allocate space in core */
-		*errp = ext4_mb_regular_allocator(ac);
+		*errp = ext4_mb_regular_allocator(&ac);
 		if (*errp)
 			goto discard_and_exit;
 
 		/* as we've just preallocated more space than
 		 * user requested originally, we store allocated
 		 * space in a special descriptor */
-		if (ac->ac_status == AC_STATUS_FOUND &&
-		    ac->ac_o_ex.fe_len < ac->ac_b_ex.fe_len)
-			*errp = ext4_mb_new_preallocation(ac);
+		if (ac.ac_status == AC_STATUS_FOUND &&
+		    ac.ac_o_ex.fe_len < ac.ac_b_ex.fe_len)
+			*errp = ext4_mb_new_preallocation(&ac);
 		if (*errp) {
 		discard_and_exit:
-			ext4_discard_allocated_blocks(ac);
+			ext4_discard_allocated_blocks(&ac);
 			goto errout;
 		}
 	}
-	if (likely(ac->ac_status == AC_STATUS_FOUND)) {
-		*errp = ext4_mb_mark_diskspace_used(ac, handle, reserv_clstrs);
+	if (likely(ac.ac_status == AC_STATUS_FOUND)) {
+		*errp = ext4_mb_mark_diskspace_used(&ac, handle, reserv_clstrs);
 		if (*errp) {
-			ext4_discard_allocated_blocks(ac);
+			ext4_discard_allocated_blocks(&ac);
 			goto errout;
 		} else {
-			block = ext4_grp_offs_to_block(sb, &ac->ac_b_ex);
-			ar->len = ac->ac_b_ex.fe_len;
+			block = ext4_grp_offs_to_block(sb, &ac.ac_b_ex);
+			ar->len = ac.ac_b_ex.fe_len;
 		}
 	} else {
-		freed  = ext4_mb_discard_preallocations(sb, ac->ac_o_ex.fe_len);
+		freed  = ext4_mb_discard_preallocations(sb, ac.ac_o_ex.fe_len);
 		if (freed)
 			goto repeat;
 		*errp = -ENOSPC;
@@ -4548,14 +4534,12 @@ repeat:
 
 errout:
 	if (*errp) {
-		ac->ac_b_ex.fe_len = 0;
+		ac.ac_b_ex.fe_len = 0;
 		ar->len = 0;
-		ext4_mb_show_ac(ac);
+		ext4_mb_show_ac(&ac);
 	}
-	ext4_mb_release_context(ac);
+	ext4_mb_release_context(&ac);
 out:
-	if (ac)
-		kmem_cache_free(ext4_ac_cachep, ac);
 	if (inquota && ar->len < inquota)
 		dquot_free_block(ar->inode, EXT4_C2B(sbi, inquota - ar->len));
 	if (!ar->len) {
@@ -4565,7 +4549,7 @@ out:
 						reserv_clstrs);
 	}
 
-	trace_ext4_allocate_blocks(ar, (unsigned long long)block);
+//	trace_ext4_allocate_blocks(ar, (unsigned long long)block);
 
 	return block;
 }
@@ -4704,7 +4688,7 @@ void ext4_free_blocks(handle_t *handle, struct inode *inode,
 	}
 
 	ext4_debug("freeing block %llu\n", block);
-	trace_ext4_free_blocks(inode, block, count, flags);
+//	trace_ext4_free_blocks(inode, block, count, flags);
 
 	if (bh && (flags & EXT4_FREE_BLOCKS_FORGET)) {
 		BUG_ON(count > 1);
@@ -4832,7 +4816,7 @@ do_more:
 			BUG_ON(!mb_test_bit(bit + i, bitmap_bh->b_data));
 	}
 #endif
-	trace_ext4_mballoc_free(sb, inode, block_group, bit, count_clusters);
+//	trace_ext4_mballoc_free(sb, inode, block_group, bit, count_clusters);
 
 	/* __GFP_NOFAIL: retry infinitely, ignore TIF_MEMDIE and memcg limit. */
 	err = ext4_mb_load_buddy_gfp(sb, block_group, &e4b,
@@ -5077,7 +5061,7 @@ __acquires(bitlock)
 	struct ext4_free_extent ex;
 	int ret = 0;
 
-	trace_ext4_trim_extent(sb, group, start, count);
+//	trace_ext4_trim_extent(sb, group, start, count);
 
 	assert_spin_locked(ext4_group_lock_ptr(sb, group));
 
@@ -5126,7 +5110,7 @@ ext4_trim_all_free(struct super_block *sb, ext4_group_t group,
 	struct ext4_buddy e4b;
 	int ret = 0;
 
-	trace_ext4_trim_all_free(sb, group, start, max);
+//	trace_ext4_trim_all_free(sb, group, start, max);
 
 	ret = ext4_mb_load_buddy(sb, group, &e4b);
 	if (ret) {

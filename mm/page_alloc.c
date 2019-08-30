@@ -904,7 +904,7 @@ static void free_pcppages_bulk(struct zone *zone, int count,
 				mt = get_pageblock_migratetype(page);
 
 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
-			trace_mm_page_pcpu_drain(page, 0, mt);
+//			trace_mm_page_pcpu_drain(page, 0, mt);
 		} while (--to_free && --batch_free && !list_empty(list));
 	}
 	spin_unlock(&zone->lock);
@@ -1038,7 +1038,7 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 	VM_BUG_ON_PAGE(PageTail(page), page);
 	VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
 
-	trace_mm_page_free(page, order);
+//	trace_mm_page_free(page, order);
 	kmemcheck_free_shadow(page, order);
 
 	if (PageMappingFlags(page))
@@ -1655,7 +1655,8 @@ static void change_pageblock_range(struct page *pageblock_page,
  * is worse than movable allocations stealing from unmovable and reclaimable
  * pageblocks.
  */
-static bool can_steal_fallback(unsigned int order, int start_mt)
+static bool can_steal_fallback(unsigned int current_order, unsigned int start_order,
+			       int start_mt, int fallback_mt)
 {
 	/*
 	 * Leaving this order check is intended, although there is
@@ -1664,12 +1665,17 @@ static bool can_steal_fallback(unsigned int order, int start_mt)
 	 * but, below check doesn't guarantee it and that is just heuristic
 	 * so could be changed anytime.
 	 */
-	if (order >= pageblock_order)
+	if (current_order >= pageblock_order)
 		return true;
 
-	if (order >= pageblock_order / 2 ||
+	/* don't let unmovable allocations cause migrations simply because of free pages */
+	if ((start_mt != MIGRATE_UNMOVABLE && current_order >= pageblock_order / 2) ||
+	        /* only steal reclaimable page blocks for unmovable allocations */
+	        (start_mt == MIGRATE_UNMOVABLE && fallback_mt != MIGRATE_MOVABLE && current_order >= pageblock_order / 2) ||
+	        /* reclaimable can steal aggressively */
 		start_mt == MIGRATE_RECLAIMABLE ||
-		start_mt == MIGRATE_UNMOVABLE ||
+		/* allow unmovable allocs up to 64K without migrating blocks */
+		(start_mt == MIGRATE_UNMOVABLE && start_order >= 5) ||
 		page_group_by_mobility_disabled)
 		return true;
 
@@ -1709,8 +1715,9 @@ static void steal_suitable_fallback(struct zone *zone, struct page *page,
  * we can steal other freepages all together. This would help to reduce
  * fragmentation due to mixed migratetype pages in one pageblock.
  */
-int find_suitable_fallback(struct free_area *area, unsigned int order,
-			int migratetype, bool only_stealable, bool *can_steal)
+int find_suitable_fallback(struct free_area *area, unsigned int current_order,
+			   int migratetype, bool only_stealable,
+			   int start_order, bool *can_steal)
 {
 	int i;
 	int fallback_mt;
@@ -1727,7 +1734,7 @@ int find_suitable_fallback(struct free_area *area, unsigned int order,
 		if (list_empty(&area->free_list[fallback_mt]))
 			continue;
 
-		if (can_steal_fallback(order, migratetype))
+		if (can_steal_fallback(current_order, start_order, migratetype, fallback_mt))
 			*can_steal = true;
 
 		if (!only_stealable)
@@ -1863,7 +1870,7 @@ __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
 				--current_order) {
 		area = &(zone->free_area[current_order]);
 		fallback_mt = find_suitable_fallback(area, current_order,
-				start_migratetype, false, &can_steal);
+				start_migratetype, false, order, &can_steal);
 		if (fallback_mt == -1)
 			continue;
 
@@ -1889,8 +1896,8 @@ __rmqueue_fallback(struct zone *zone, unsigned int order, int start_migratetype)
 		 */
 		set_pcppage_migratetype(page, start_migratetype);
 
-		trace_mm_page_alloc_extfrag(page, order, current_order,
-			start_migratetype, fallback_mt);
+//		trace_mm_page_alloc_extfrag(page, order, current_order,
+//			start_migratetype, fallback_mt);
 
 		return page;
 	}
@@ -1912,7 +1919,7 @@ static struct page *__rmqueue(struct zone *zone, unsigned int order,
 		page = __rmqueue_fallback(zone, order, migratetype);
 	}
 
-	trace_mm_page_alloc_zone_locked(page, order, migratetype);
+//	trace_mm_page_alloc_zone_locked(page, order, migratetype);
 	return page;
 }
 
@@ -1923,7 +1930,7 @@ static struct page *__rmqueue_cma(struct zone *zone, unsigned int order)
 	if (IS_ENABLED(CONFIG_CMA))
 		if (!zone->cma_alloc)
 			page = __rmqueue_cma_fallback(zone, order);
-	trace_mm_page_alloc_zone_locked(page, order, MIGRATE_CMA);
+//	trace_mm_page_alloc_zone_locked(page, order, MIGRATE_CMA);
 	return page;
 }
 #else
@@ -2236,7 +2243,7 @@ void free_hot_cold_page_list(struct list_head *list, bool cold)
 	struct page *page, *next;
 
 	list_for_each_entry_safe(page, next, list, lru) {
-		trace_mm_page_free_batched(page, cold);
+//		trace_mm_page_free_batched(page, cold);
 		free_hot_cold_page(page, cold);
 	}
 }
@@ -2377,8 +2384,8 @@ struct page *buffered_rmqueue(struct zone *preferred_zone,
 		page = NULL;
 		if (alloc_flags & ALLOC_HARDER) {
 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
-			if (page)
-				trace_mm_page_alloc_zone_locked(page, order, migratetype);
+//			if (page)
+//				trace_mm_page_alloc_zone_locked(page, order, migratetype);
 		}
 		if (!page && migratetype == MIGRATE_MOVABLE &&
 				gfp_flags & __GFP_CMA)
@@ -3390,7 +3397,7 @@ retry_cpuset:
 	if (kmemcheck_enabled && page)
 		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
 
-	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
+//	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
 
 out:
 	/*
@@ -4688,13 +4695,12 @@ static int zone_batchsize(struct zone *zone)
 
 	/*
 	 * The per-cpu-pages pools are set to around 1000th of the
-	 * size of the zone.  But no more than 1/2 of a meg.
-	 *
-	 * OK, so we don't know how big the cache is.  So guess.
+	 * size of the zone.
 	 */
 	batch = zone->managed_pages / 1024;
-	if (batch * PAGE_SIZE > 512 * 1024)
-		batch = (512 * 1024) / PAGE_SIZE;
+	/* But no more than a meg. */
+	if (batch * PAGE_SIZE > 1024 * 1024)
+		batch = (1024 * 1024) / PAGE_SIZE;
 	batch /= 4;		/* We effectively *= 4 below */
 	if (batch < 1)
 		batch = 1;

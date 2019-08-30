@@ -449,7 +449,7 @@ static int _cpu_down(unsigned int cpu, int tasks_frozen)
 
 out_release:
 	cpu_hotplug_done();
-	trace_sched_cpu_hotplug(cpu, err, 0);
+//	trace_sched_cpu_hotplug(cpu, err, 0);
 	if (!err)
 		cpu_notify_nofail(CPU_POST_DEAD | mod, hcpu);
 	arch_smt_update();
@@ -565,7 +565,7 @@ out_notify:
 out:
 	cpu_hotplug_done();
 	arch_smt_update();
-	trace_sched_cpu_hotplug(cpu, ret, 1);
+//	trace_sched_cpu_hotplug(cpu, ret, 1);
 
 	return ret;
 }
@@ -662,9 +662,9 @@ int disable_nonboot_cpus(void)
 	for_each_online_cpu(cpu) {
 		if (cpu == first_cpu)
 			continue;
-		trace_suspend_resume(TPS("CPU_OFF"), cpu, true);
+//		trace_suspend_resume(TPS("CPU_OFF"), cpu, true);
 		error = _cpu_down(cpu, 1);
-		trace_suspend_resume(TPS("CPU_OFF"), cpu, false);
+//		trace_suspend_resume(TPS("CPU_OFF"), cpu, false);
 		if (!error)
 			cpumask_set_cpu(cpu, frozen_cpus);
 		else {
@@ -713,9 +713,9 @@ void enable_nonboot_cpus(void)
 	arch_enable_nonboot_cpus_begin();
 
 	for_each_cpu(cpu, frozen_cpus) {
-		trace_suspend_resume(TPS("CPU_ON"), cpu, true);
+//		trace_suspend_resume(TPS("CPU_ON"), cpu, true);
 		error = _cpu_up(cpu, 1);
-		trace_suspend_resume(TPS("CPU_ON"), cpu, false);
+//		trace_suspend_resume(TPS("CPU_ON"), cpu, false);
 		if (!error) {
 			pr_debug("CPU%d is up\n", cpu);
 			cpu_device = get_cpu_device(cpu);

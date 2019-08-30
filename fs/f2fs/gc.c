@@ -33,12 +33,12 @@ static inline void gc_set_wakelock(struct f2fs_sb_info *sbi,
 {
 	if (val) {
 		if (!wake_lock_active(&gc_th->gc_wakelock)) {
-			f2fs_msg(sbi->sb, KERN_INFO, "Catching wakelock for GC");
+			f2fs_info(sbi, "Catching wakelock for GC");
 			wake_lock(&gc_th->gc_wakelock);
 		}
 	} else {
 		if (wake_lock_active(&gc_th->gc_wakelock)) {
-			f2fs_msg(sbi->sb, KERN_INFO, "Unlocking wakelock for GC");
+			f2fs_info(sbi, "Unlocking wakelock for GC");
 			wake_unlock(&gc_th->gc_wakelock);
 		}
 	}
@@ -143,7 +143,7 @@ do_gc:
 			wait_ms = gc_th->no_gc_sleep_time;
 			gc_set_wakelock(sbi, gc_th, false);
 			sbi->gc_mode = GC_NORMAL;
-			f2fs_msg(sbi->sb, KERN_INFO,
+			f2fs_info(sbi,
 				"No more GC victim found, "
 				"sleeping for %u ms", wait_ms);
 
@@ -152,7 +152,7 @@ do_gc:
 			 * that would not be read again anytime soon.
 			 */
 			mm_drop_caches(3);
-			f2fs_msg(sbi->sb, KERN_INFO, "dropped caches");
+			f2fs_info(sbi, "dropped caches");
 		}
 
 		trace_f2fs_background_gc(sbi->sb, wait_ms,
@@ -244,8 +244,8 @@ void f2fs_start_all_gc_threads(void)
 			wake_up_interruptible_all(&sbi->gc_thread->gc_wait_queue_head);
 			wake_up_discard_thread(sbi, true);
 		} else {
-			f2fs_msg(sbi->sb, KERN_INFO,
-					"Invalid blocks lower than %d%%,"
+			f2fs_info(sbi,
+					"Invalid blocks lower than %d%%, "
 					"skipping rapid GC (%u / (%u - %u))",
 					RAPID_GC_LIMIT_INVALID_BLOCK,
 					invalid_blocks,
@@ -793,9 +793,8 @@ static bool is_alive(struct f2fs_sb_info *sbi, struct f2fs_summary *sum,
 	}
 
 	if (sum->version != dni->version) {
-		f2fs_msg(sbi->sb, KERN_WARNING,
-				"%s: valid data with mismatched node version.",
-				__func__);
+		f2fs_warn(sbi, "%s: valid data with mismatched node version.",
+			  __func__);
 		set_sbi_flag(sbi, SBI_NEED_FSCK);
 	}
 
@@ -836,7 +835,7 @@ static int ra_data_block(struct inode *inode, pgoff_t index)
 		dn.data_blkaddr = ei.blk + index - ei.fofs;
 		if (unlikely(!f2fs_is_valid_blkaddr(sbi, dn.data_blkaddr,
 						DATA_GENERIC_ENHANCE_READ))) {
-			err = -EFAULT;
+			err = -EFSCORRUPTED;
 			goto put_page;
 		}
 		goto got_it;
@@ -854,7 +853,7 @@ static int ra_data_block(struct inode *inode, pgoff_t index)
 	}
 	if (unlikely(!f2fs_is_valid_blkaddr(sbi, dn.data_blkaddr,
 						DATA_GENERIC_ENHANCE))) {
-		err = -EFAULT;
+		err = -EFSCORRUPTED;
 		goto put_page;
 	}
 got_it:
@@ -972,6 +971,29 @@ static int move_data_block(struct inode *inode, block_t bidx,
 	if (lfs_mode)
 		down_write(&fio.sbi->io_order_lock);
 
+	mpage = f2fs_grab_cache_page(META_MAPPING(fio.sbi),
+					fio.old_blkaddr, false);
+	if (!mpage)
+		goto up_out;
+
+	fio.encrypted_page = mpage;
+
+	/* read source block in mpage */
+	if (!PageUptodate(mpage)) {
+		err = f2fs_submit_page_bio(&fio);
+		if (err) {
+			f2fs_put_page(mpage, 1);
+			goto up_out;
+		}
+		lock_page(mpage);
+		if (unlikely(mpage->mapping != META_MAPPING(fio.sbi) ||
+						!PageUptodate(mpage))) {
+			err = -EIO;
+			f2fs_put_page(mpage, 1);
+			goto up_out;
+		}
+	}
+
 	f2fs_allocate_data_block(fio.sbi, NULL, fio.old_blkaddr, &newaddr,
 					&sum, CURSEG_COLD_DATA, NULL, false);
 
@@ -979,44 +1001,18 @@ static int move_data_block(struct inode *inode, block_t bidx,
 				newaddr, FGP_LOCK | FGP_CREAT, GFP_NOFS);
 	if (!fio.encrypted_page) {
 		err = -ENOMEM;
+		f2fs_put_page(mpage, 1);
 		goto recover_block;
 	}
 
-	mpage = f2fs_pagecache_get_page(META_MAPPING(fio.sbi),
-					fio.old_blkaddr, FGP_LOCK, GFP_NOFS);
-	if (mpage) {
-		bool updated = false;
-
-		if (PageUptodate(mpage)) {
-			memcpy(page_address(fio.encrypted_page),
-					page_address(mpage), PAGE_SIZE);
-			updated = true;
-		}
-		f2fs_put_page(mpage, 1);
-		invalidate_mapping_pages(META_MAPPING(fio.sbi),
-					fio.old_blkaddr, fio.old_blkaddr);
-		if (updated)
-			goto write_page;
-	}
-
-	err = f2fs_submit_page_bio(&fio);
-	if (err)
-		goto put_page_out;
-
-	/* write page */
-	lock_page(fio.encrypted_page);
-
-	if (unlikely(fio.encrypted_page->mapping != META_MAPPING(fio.sbi))) {
-		err = -EIO;
-		goto put_page_out;
-	}
-	if (unlikely(!PageUptodate(fio.encrypted_page))) {
-		err = -EIO;
-		goto put_page_out;
-	}
-
-write_page:
+	/* write target block */
 	f2fs_wait_on_page_writeback(fio.encrypted_page, DATA, true, true);
+	memcpy(page_address(fio.encrypted_page),
+				page_address(mpage), PAGE_SIZE);
+	f2fs_put_page(mpage, 1);
+	invalidate_mapping_pages(META_MAPPING(fio.sbi),
+				fio.old_blkaddr, fio.old_blkaddr);
+
 	set_page_dirty(fio.encrypted_page);
 	if (clear_page_dirty_for_io(fio.encrypted_page))
 		dec_page_count(fio.sbi, F2FS_DIRTY_META);
@@ -1047,11 +1043,12 @@ write_page:
 put_page_out:
 	f2fs_put_page(fio.encrypted_page, 1);
 recover_block:
-	if (lfs_mode)
-		up_write(&fio.sbi->io_order_lock);
 	if (err)
 		f2fs_do_replace_block(fio.sbi, &sum, newaddr, fio.old_blkaddr,
 								true, true);
+up_out:
+	if (lfs_mode)
+		up_write(&fio.sbi->io_order_lock);
 put_out:
 	f2fs_put_dnode(&dn);
 out:
@@ -1358,9 +1355,8 @@ static int do_garbage_collect(struct f2fs_sb_info *sbi,
 
 		sum = page_address(sum_page);
 		if (type != GET_SUM_TYPE((&sum->footer))) {
-			f2fs_msg(sbi->sb, KERN_ERR, "Inconsistent segment (%u) "
-				"type [%d, %d] in SSA and SIT",
-				segno, type, GET_SUM_TYPE((&sum->footer)));
+			f2fs_err(sbi, "Inconsistent segment (%u) type [%d, %d] in SSA and SIT",
+				 segno, type, GET_SUM_TYPE((&sum->footer)));
 			set_sbi_flag(sbi, SBI_NEED_FSCK);
 			f2fs_stop_checkpoint(sbi, false);
 			goto skip;
@@ -1580,8 +1576,8 @@ static int free_segment_range(struct f2fs_sb_info *sbi, unsigned int start,
 
 	next_inuse = find_next_inuse(FREE_I(sbi), end + 1, start);
 	if (next_inuse <= end) {
-		f2fs_msg(sbi->sb, KERN_ERR,
-			"segno %u should be free but still inuse!", next_inuse);
+		f2fs_err(sbi, "segno %u should be free but still inuse!",
+			 next_inuse);
 		f2fs_bug_on(sbi, 1);
 	}
 	return err;
@@ -1623,34 +1619,34 @@ int f2fs_resize_fs(struct f2fs_sb_info *sbi, __u64 block_count)
 	unsigned int secs;
 	int gc_mode, gc_type;
 	int err = 0;
+	__u32 rem;
 
 	old_block_count = le64_to_cpu(F2FS_RAW_SUPER(sbi)->block_count);
 	if (block_count > old_block_count)
 		return -EINVAL;
 
 	/* new fs size should align to section size */
-	if (block_count % BLKS_PER_SEC(sbi))
+	div_u64_rem(block_count, BLKS_PER_SEC(sbi), &rem);
+	if (rem)
 		return -EINVAL;
 
 	if (block_count == old_block_count)
 		return 0;
 
 	if (is_sbi_flag_set(sbi, SBI_NEED_FSCK)) {
-		f2fs_msg(sbi->sb, KERN_ERR,
-			"Should run fsck to repair first.");
-		return -EINVAL;
+		f2fs_err(sbi, "Should run fsck to repair first.");
+		return -EFSCORRUPTED;
 	}
 
 	if (test_opt(sbi, DISABLE_CHECKPOINT)) {
-		f2fs_msg(sbi->sb, KERN_ERR,
-			"Checkpoint should be enabled.");
+		f2fs_err(sbi, "Checkpoint should be enabled.");
 		return -EINVAL;
 	}
 
 	freeze_bdev(sbi->sb->s_bdev);
 
 	shrunk_blocks = old_block_count - block_count;
-	secs = shrunk_blocks / BLKS_PER_SEC(sbi);
+	secs = div_u64(shrunk_blocks, BLKS_PER_SEC(sbi));
 	spin_lock(&sbi->stat_lock);
 	if (shrunk_blocks + valid_user_blocks(sbi) +
 		sbi->current_reserved_blocks + sbi->unusable_block_count +
@@ -1707,8 +1703,7 @@ int f2fs_resize_fs(struct f2fs_sb_info *sbi, __u64 block_count)
 out:
 	if (err) {
 		set_sbi_flag(sbi, SBI_NEED_FSCK);
-		f2fs_msg(sbi->sb, KERN_ERR,
-				"resize_fs failed, should run fsck to repair!");
+		f2fs_err(sbi, "resize_fs failed, should run fsck to repair!");
 
 		MAIN_SECS(sbi) += secs;
 		spin_lock(&sbi->stat_lock);

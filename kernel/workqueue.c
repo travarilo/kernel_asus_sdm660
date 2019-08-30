@@ -290,7 +290,7 @@ module_param_named(disable_numa, wq_disable_numa, bool, 0444);
 
 /* see the comment above the definition of WQ_POWER_EFFICIENT */
 static bool wq_power_efficient = IS_ENABLED(CONFIG_WQ_POWER_EFFICIENT_DEFAULT);
-module_param_named(power_efficient, wq_power_efficient, bool, 0444);
+module_param_named(power_efficient, wq_power_efficient, bool, 0644);
 
 static bool wq_numa_enabled;		/* unbound NUMA affinity enabled */
 
@@ -1126,7 +1126,7 @@ static void pwq_activate_delayed_work(struct work_struct *work)
 {
 	struct pool_workqueue *pwq = get_work_pwq(work);
 
-	trace_workqueue_activate_work(work);
+//	trace_workqueue_activate_work(work);
 	if (list_empty(&pwq->pool->worklist))
 		pwq->pool->watchdog_ts = jiffies;
 	move_linked_works(work, &pwq->pool->worklist, NULL);
@@ -1423,7 +1423,7 @@ retry:
 	}
 
 	/* pwq determined, queue */
-	trace_workqueue_queue_work(req_cpu, pwq, work);
+//	trace_workqueue_queue_work(req_cpu, pwq, work);
 
 	if (WARN_ON(!list_empty(&work->entry))) {
 		spin_unlock(&pwq->pool->lock);
@@ -1434,7 +1434,7 @@ retry:
 	work_flags = work_color_to_flags(pwq->work_color);
 
 	if (likely(pwq->nr_active < pwq->max_active)) {
-		trace_workqueue_activate_work(work);
+//		trace_workqueue_activate_work(work);
 		pwq->nr_active++;
 		worklist = &pwq->pool->worklist;
 		if (list_empty(worklist))
@@ -2072,13 +2072,13 @@ __acquires(&pool->lock)
 
 	lock_map_acquire_read(&pwq->wq->lockdep_map);
 	lock_map_acquire(&lockdep_map);
-	trace_workqueue_execute_start(work);
+//	trace_workqueue_execute_start(work);
 	worker->current_func(work);
 	/*
 	 * While we must be careful to not use "work" after this, the trace
 	 * point will only record its address.
 	 */
-	trace_workqueue_execute_end(work);
+//	trace_workqueue_execute_end(work);
 	lock_map_release(&lockdep_map);
 	lock_map_release(&pwq->wq->lockdep_map);
 

@@ -542,8 +542,8 @@ static inline int get_inline_xattr_addrs(struct inode *inode);
 #define NR_INLINE_DENTRY(inode)	(MAX_INLINE_DATA(inode) * BITS_PER_BYTE / \
 				((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
 				BITS_PER_BYTE + 1))
-#define INLINE_DENTRY_BITMAP_SIZE(inode)	((NR_INLINE_DENTRY(inode) + \
-					BITS_PER_BYTE - 1) / BITS_PER_BYTE)
+#define INLINE_DENTRY_BITMAP_SIZE(inode) \
+	DIV_ROUND_UP(NR_INLINE_DENTRY(inode), BITS_PER_BYTE)
 #define INLINE_RESERVED_SIZE(inode)	(MAX_INLINE_DATA(inode) - \
 				((SIZE_OF_DIR_ENTRY + F2FS_SLOT_LEN) * \
 				NR_INLINE_DENTRY(inode) + \
@@ -1118,6 +1118,8 @@ struct f2fs_io_info {
 	bool retry;		/* need to reallocate block address */
 	enum iostat_type io_type;	/* io type */
 	struct writeback_control *io_wbc; /* writeback control */
+	struct bio **bio;		/* bio for ipu */
+	sector_t *last_block;		/* last block number in bio */
 	unsigned char version;		/* version of the node */
 };
 
@@ -1561,7 +1563,7 @@ static inline struct f2fs_sb_info *F2FS_M_SB(struct address_space *mapping)
 
 static inline struct f2fs_sb_info *F2FS_P_SB(struct page *page)
 {
-	return F2FS_M_SB(page->mapping);
+	return F2FS_M_SB(page_file_mapping(page));
 }
 
 static inline struct f2fs_super_block *F2FS_RAW_SUPER(struct f2fs_sb_info *sbi)
@@ -1872,7 +1874,20 @@ enospc:
 	return -ENOSPC;
 }
 
-void f2fs_msg(struct super_block *sb, const char *level, const char *fmt, ...);
+__printf(2, 3)
+void f2fs_printk(struct f2fs_sb_info *sbi, const char *fmt, ...);
+
+#define f2fs_err(sbi, fmt, ...)						\
+	f2fs_printk(sbi, KERN_ERR fmt, ##__VA_ARGS__)
+#define f2fs_warn(sbi, fmt, ...)					\
+	f2fs_printk(sbi, KERN_WARNING fmt, ##__VA_ARGS__)
+#define f2fs_notice(sbi, fmt, ...)					\
+	f2fs_printk(sbi, KERN_NOTICE fmt, ##__VA_ARGS__)
+#define f2fs_info(sbi, fmt, ...)					\
+	f2fs_printk(sbi, KERN_INFO fmt, ##__VA_ARGS__)
+#define f2fs_debug(sbi, fmt, ...)					\
+	f2fs_printk(sbi, KERN_DEBUG fmt, ##__VA_ARGS__)
+
 static inline void dec_valid_block_count(struct f2fs_sb_info *sbi,
 						struct inode *inode,
 						block_t count)
@@ -1888,11 +1903,10 @@ static inline void dec_valid_block_count(struct f2fs_sb_info *sbi,
 					sbi->current_reserved_blocks + count);
 	spin_unlock(&sbi->stat_lock);
 	if (unlikely(inode->i_blocks < sectors)) {
-		f2fs_msg(sbi->sb, KERN_WARNING,
-			"Inconsistent i_blocks, ino:%lu, iblocks:%llu, sectors:%llu",
-			inode->i_ino,
-			(unsigned long long)inode->i_blocks,
-			(unsigned long long)sectors);
+		f2fs_warn(sbi, "Inconsistent i_blocks, ino:%lu, iblocks:%llu, sectors:%llu",
+			  inode->i_ino,
+			  (unsigned long long)inode->i_blocks,
+			  (unsigned long long)sectors);
 		set_sbi_flag(sbi, SBI_NEED_FSCK);
 		return;
 	}
@@ -2130,10 +2144,9 @@ static inline void dec_valid_node_count(struct f2fs_sb_info *sbi,
 		dquot_free_inode(inode);
 	} else {
 		if (unlikely(inode->i_blocks == 0)) {
-			f2fs_msg(sbi->sb, KERN_WARNING,
-				"Inconsistent i_blocks, ino:%lu, iblocks:%llu",
-				inode->i_ino,
-				(unsigned long long)inode->i_blocks);
+			f2fs_warn(sbi, "Inconsistent i_blocks, ino:%lu, iblocks:%llu",
+				  inode->i_ino,
+				  (unsigned long long)inode->i_blocks);
 			set_sbi_flag(sbi, SBI_NEED_FSCK);
 			return;
 		}
@@ -2279,7 +2292,7 @@ static inline bool is_idle(struct f2fs_sb_info *sbi, int type)
 		get_pages(sbi, F2FS_DIO_WRITE))
 		return false;
 
-	if (SM_I(sbi) && SM_I(sbi)->dcc_info &&
+	if (type != DISCARD_TIME && SM_I(sbi) && SM_I(sbi)->dcc_info &&
 			atomic_read(&SM_I(sbi)->dcc_info->queued_discard))
 		return false;
 
@@ -2925,9 +2938,8 @@ static inline void verify_blkaddr(struct f2fs_sb_info *sbi,
 					block_t blkaddr, int type)
 {
 	if (!f2fs_is_valid_blkaddr(sbi, blkaddr, type)) {
-		f2fs_msg(sbi->sb, KERN_ERR,
-			"invalid blkaddr: %u, type: %d, run fsck to fix.",
-			blkaddr, type);
+		f2fs_err(sbi, "invalid blkaddr: %u, type: %d, run fsck to fix.",
+			 blkaddr, type);
 		f2fs_bug_on(sbi, 1);
 	}
 }
@@ -3057,8 +3069,6 @@ int f2fs_quota_sync(struct super_block *sb, int type);
 void f2fs_quota_off_umount(struct super_block *sb);
 int f2fs_commit_super(struct f2fs_sb_info *sbi, bool recover);
 int f2fs_sync_fs(struct super_block *sb, int sync);
-extern __printf(3, 4)
-void f2fs_msg(struct super_block *sb, const char *level, const char *fmt, ...);
 int f2fs_sanity_check_ckpt(struct f2fs_sb_info *sbi);
 
 /*
@@ -3240,6 +3250,7 @@ void f2fs_submit_merged_write_cond(struct f2fs_sb_info *sbi,
 				nid_t ino, enum page_type type);
 void f2fs_flush_merged_writes(struct f2fs_sb_info *sbi);
 int f2fs_submit_page_bio(struct f2fs_io_info *fio);
+int f2fs_merge_page_bio(struct f2fs_io_info *fio);
 void f2fs_submit_page_write(struct f2fs_io_info *fio);
 struct block_device *f2fs_target_device(struct f2fs_sb_info *sbi,
 			block_t blk_addr, struct bio *bio);
@@ -3771,7 +3782,8 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
 	if (test_opt(sbi, LFS) && (rw == WRITE) &&
 				block_unaligned_IO(inode, iocb, iter))
 		return true;
-	if (is_sbi_flag_set(F2FS_I_SB(inode), SBI_CP_DISABLED))
+	if (is_sbi_flag_set(F2FS_I_SB(inode), SBI_CP_DISABLED) &&
+					!(inode->i_flags & S_SWAPFILE))
 		return true;
 
 	return false;
@@ -3796,5 +3808,8 @@ static inline bool is_journalled_quota(struct f2fs_sb_info *sbi)
 #endif
 	return false;
 }
+
+#define EFSBADCRC	EBADMSG		/* Bad CRC detected */
+#define EFSCORRUPTED	EUCLEAN		/* Filesystem is corrupted */
 
 #endif /* _LINUX_F2FS_H */
