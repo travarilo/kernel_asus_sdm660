@@ -45,9 +45,6 @@ static int __init proc_cmdline_init(void)
 {
 	// copy it only once
 	strcpy(updated_command_line, saved_command_line);
-	proc_cmdline_set("androidboot.enable_dm_verity", NULL);
-	proc_cmdline_set("androidboot.secboot", NULL);
-	proc_cmdline_set("androidboot.veritymode", NULL);
 	proc_cmdline_set("androidboot.verifiedbootstate", "green");
 
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
