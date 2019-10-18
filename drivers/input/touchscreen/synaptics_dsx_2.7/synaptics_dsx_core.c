@@ -4495,6 +4495,7 @@ exit:
 }
 EXPORT_SYMBOL(synaptics_rmi4_new_function);
 
+#if 0
 /**********add ito test mode function  *******************/
 #define HWINFO_NAME		"tp_wake_switch"
 
@@ -4547,6 +4548,7 @@ int syna_test_node_init(struct platform_device *tpinfo_device)
 	return err;
 }
 /*************************************************/
+#endif
 
 static int synaptics_rmi4_probe(struct platform_device *pdev)
 {
@@ -4734,9 +4736,11 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	interrupt_signal.si_code = SI_USER;
 #endif
 
+#if 0
 	//--------add ito node
 	platform_device_register(&hwinfo_device);
 	syna_test_node_init(&hwinfo_device);
+#endif
 	er = create_gesture_node_syna();
 
 	rmi4_data->rb_workqueue =
