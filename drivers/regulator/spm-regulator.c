@@ -421,18 +421,17 @@ static int spm_regulator_write_voltage(struct spm_vreg *vreg, int uV)
 
 static int spm_regulator_recalibrate(struct spm_vreg *vreg)
 {
-	int rc;
+	struct arm_smccc_res res;
 
 	if (!vreg->recal_cluster_mask)
 		return 0;
 
-	rc = __invoke_psci_fn_smc(0xC4000020, vreg->recal_cluster_mask,
-				  2, 0);
-	if (rc)
-		pr_err("%s: recalibration failed, rc=%d\n", vreg->rdesc.name,
-			rc);
+	arm_smccc_smc(0xC4000020, vreg->recal_cluster_mask, 2, 0, 0, 0, 0, 0, &res);
+	if (res.a0)
+		pr_err("%s: recalibration failed, rc=%ld\n", vreg->rdesc.name,
+			res.a0);
 
-	return rc;
+	return res.a0;
 }
 
 static int _spm_regulator_set_voltage(struct regulator_dev *rdev)

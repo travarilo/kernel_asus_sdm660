@@ -64,6 +64,16 @@ static remote_spinlock_t scm_handoff_lock;
 
 struct lpm_cluster *lpm_root_node;
 
+static unsigned long __invoke_psci_fn_smc(unsigned long a, unsigned long b,
+					  unsigned long c, unsigned long d)
+{
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(a, b, c, d, 0, 0, 0, 0, &res);
+
+	return res.a0;
+}
+
 #define MAXSAMPLES 5
 
 static bool lpm_prediction = true;

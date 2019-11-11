@@ -116,6 +116,16 @@ static struct dentry *apm_debugfs_base;
 static DEFINE_MUTEX(apm_ctrl_list_mutex);
 static LIST_HEAD(apm_ctrl_list);
 
+static unsigned long __invoke_psci_fn_smc(unsigned long a, unsigned long b,
+					  unsigned long c, unsigned long d)
+{
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(a, b, c, d, 0, 0, 0, 0, &res);
+
+	return res.a0;
+}
+
 /*
  * Get the resources associated with the APM controller from device tree
  * and remap all I/O addresses that are relevant to this HW revision.
