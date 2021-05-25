@@ -134,7 +134,7 @@ static inline int ath9k_htc_connect_svc(struct ath9k_htc_priv *priv,
 	req.ep_callbacks.rx = ath9k_htc_rxep;
 	req.ep_callbacks.tx = tx;
 
-	return htc_connect_service(priv->htc, &req, ep_id);
+	return htc_connect_service_hst(priv->htc, &req, ep_id);
 }
 
 static int ath9k_init_htc_services(struct ath9k_htc_priv *priv, u16 devid,
@@ -246,7 +246,7 @@ static unsigned int ath9k_regread(void *hw_priv, u32 reg_offset)
 	if (unlikely(r)) {
 		ath_dbg(common, WMI, "REGISTER READ FAILED: (0x%04x, %d)\n",
 			reg_offset, r);
-		return -EIO;
+		return -1;
 	}
 
 	return be32_to_cpu(val);

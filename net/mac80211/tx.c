@@ -164,7 +164,7 @@ static __le16 ieee80211_duration(struct ieee80211_tx_data *tx,
 			if (r->flags & IEEE80211_RATE_MANDATORY_A)
 				mrate = r->bitrate;
 			break;
-		case IEEE80211_BAND_60GHZ:
+		case NL80211_BAND_60GHZ:
 			/* TODO, for now fall through */
 		case NUM_NL80211_BANDS:
 			WARN_ON(1);
@@ -1427,7 +1427,7 @@ static bool __ieee80211_tx(struct ieee80211_local *local,
 
 	switch (sdata->vif.type) {
 	case NL80211_IFTYPE_MONITOR:
-		if (sdata->u.mntr_flags & MONITOR_FLAG_ACTIVE) {
+		if (sdata->u.mntr.flags & MONITOR_FLAG_ACTIVE) {
 			vif = &sdata->vif;
 			break;
 		}
